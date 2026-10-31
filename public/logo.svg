@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1411" height="635" viewBox="0 0 1411 635" role="img" aria-label="Turquoise O I O logo">
+  <defs>
+    <linearGradient id="turquoise" x1="0" y1="0" x2="0.26" y2="1" objectBoundingBox="true">
+      <stop offset="0" stop-color="#08f5d5"/>
+      <stop offset="0.52" stop-color="#00eacb"/>
+      <stop offset="1" stop-color="#00d8b9"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#turquoise)" transform="translate(-117 -134)">
+    <path fill-rule="evenodd" d="M 433 134 A 316 316 0 1 1 433 766 A 316 316 0 1 1 433 134 Z M 433 205 A 245 245 0 1 0 433 695 A 245 245 0 1 0 433 205 Z"/>
+    <rect x="775" y="135" width="96" height="634" rx="48"/>
+    <path fill-rule="evenodd" d="M 1212 134 A 316 316 0 1 1 1212 766 A 316 316 0 1 1 1212 134 Z M 1212 205 A 245 245 0 1 0 1212 695 A 245 245 0 1 0 1212 205 Z"/>
+  </g>
+</svg>
