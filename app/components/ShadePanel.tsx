@@ -70,7 +70,7 @@ export default function ShadePanel() {
         </p>
 
         {/* Neither did we */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: "0.55em", marginTop: 8 }}>
+        <div className="shade-neither" style={{ display: "flex", alignItems: "baseline", gap: "0.55em", marginTop: 8 }}>
           <span
             style={{
               ...serif,
