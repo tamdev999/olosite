@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   title: "olo",
   description: "The business AI you've been waiting for. Built for business owners with better things to do.",
   icons: {
-    icon: "/LOGO.png",
+    icon: "/logo.svg",
   },
 };
 
