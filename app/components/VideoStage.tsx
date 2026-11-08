@@ -59,7 +59,7 @@ export default function VideoStage() {
           <video
             ref={videoRef}
             autoPlay muted loop playsInline
-            src="/olo.mp4" poster={undefined}
+            src="https://bwydxgx4rhhxip51.public.blob.vercel-storage.com/olo.mp4" poster={undefined}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
           />
           <div style={{
