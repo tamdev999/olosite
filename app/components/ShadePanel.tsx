@@ -10,6 +10,7 @@ const serif: React.CSSProperties = {
 export default function ShadePanel() {
   return (
     <section
+      className="shade-panel"
       style={{
         width: "100%",
         maxWidth: 1280,
@@ -23,7 +24,7 @@ export default function ShadePanel() {
       }}
     >
       {/* ── Left column ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+      <div className="shade-text" style={{ display: "flex", flexDirection: "column", gap: 48 }}>
 
         {/* Big headline */}
         <h2
@@ -107,7 +108,7 @@ export default function ShadePanel() {
       </div>
 
       {/* ── Right column — swatch graphic ── */}
-      <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center", overflow: "visible" }}>
+      <div className="shade-graphic" style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center", overflow: "visible" }}>
 
         {/* Image — sits above the glow */}
         <Image

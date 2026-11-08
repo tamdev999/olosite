@@ -143,6 +143,7 @@ export default function HowItWorks() {
   return (
     <section
       ref={sectionRef}
+      className="how-pin"
       style={{
         position: "relative",
         width: "100%",
@@ -174,9 +175,9 @@ export default function HowItWorks() {
       />
 
       {/* ── Left column ── */}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 28, marginLeft: "auto", paddingRight: 0, maxWidth: 380, justifySelf: "end", transform: "translateX(350px)" }}>
+      <div className="how-copy" style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 28, marginLeft: "auto", paddingRight: 0, maxWidth: 380, justifySelf: "end", transform: "translateX(350px)" }}>
         {/* Eyebrow */}
-        <p style={{
+        <p className="how-eyebrow" style={{
           margin: 0,
           fontFamily: "var(--font-ibm-plex-mono), monospace",
           fontSize: 19,
@@ -190,7 +191,7 @@ export default function HowItWorks() {
         </p>
 
         {/* Headline */}
-        <h2 style={{
+        <h2 className="how-headline" style={{
           margin: 0,
           fontSize: "clamp(1.4rem, 2.2vw, 2rem)",
           fontWeight: 400,
@@ -206,10 +207,10 @@ export default function HowItWorks() {
         </h2>
 
         {/* Rule */}
-        <div style={{ width: "100%", height: 1, background: "rgba(255,255,255,0.12)" }} />
+        <div className="how-rule" style={{ width: "100%", height: 1, background: "rgba(255,255,255,0.12)" }} />
 
         {/* Counter */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <div className="how-counter" style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
           <span style={{
             fontSize: "clamp(44px, 5vw, 72px)",
             fontWeight: 300,
@@ -225,7 +226,7 @@ export default function HowItWorks() {
         </div>
 
         {/* Step title + conditional subheading — wrapped so flex gap doesn't split them */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="how-title" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <h3 style={{
             margin: 0,
             fontSize: "clamp(24px, 2.6vw, 38px)",
@@ -240,7 +241,7 @@ export default function HowItWorks() {
         </div>
 
         {/* Progress bars */}
-        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+        <div className="how-bars" style={{ display: "flex", gap: 5, alignItems: "center" }}>
           {Array.from({ length: COUNT }).map((_, i) => (
             <div key={i} style={{
               width: 28,
@@ -266,6 +267,7 @@ export default function HowItWorks() {
 
       {/* ── Right column — 3D fan stack ── */}
       <div
+        className="how-stage"
         style={{
           position: "relative",
           zIndex: 1,
@@ -278,6 +280,7 @@ export default function HowItWorks() {
       >
         <div
           ref={stackRef}
+          className="how-stack"
           style={{
             position: "relative",
             width: cardW,
