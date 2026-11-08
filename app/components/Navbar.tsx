@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useModal } from "./ModalContext";
 
 export default function Navbar() {
+  const { open } = useModal();
   return (
     <header
       style={{
@@ -51,8 +53,8 @@ export default function Navbar() {
         </a>
 
         {/* CTA */}
-        <a
-          href="#"
+        <button
+          onClick={open}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -64,19 +66,16 @@ export default function Navbar() {
             fontSize: 13,
             fontWeight: 600,
             letterSpacing: "0.01em",
-            textDecoration: "none",
+            border: "none",
+            cursor: "pointer",
             whiteSpace: "nowrap",
             transition: "background 0.15s",
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "#e5e5e5";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "#ffffff";
-          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#e5e5e5"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; }}
         >
           Get Early Access
-        </a>
+        </button>
       </div>
     </header>
   );

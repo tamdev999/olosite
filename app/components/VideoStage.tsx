@@ -59,7 +59,7 @@ export default function VideoStage() {
           <video
             ref={videoRef}
             autoPlay muted loop playsInline
-            src={undefined} poster={undefined}
+            src="/olo.mp4" poster={undefined}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
           />
           <div style={{
