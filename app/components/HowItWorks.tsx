@@ -133,7 +133,7 @@ export default function HowItWorks() {
   const step = TITLES[activeStep];
 
   // Card width for proportional sizing — matches reference calc
-  const cardW = "clamp(250px, 36vw, 560px)";
+  const cardW = "clamp(200px, 28vw, 560px)";
   const persp = "calc(clamp(250px, 36vw, 560px) * 2.86)";
   const horizon = "calc(clamp(250px, 36vw, 560px) * 5.7)";
   const stepX = "calc(clamp(250px, 36vw, 560px) * 0.136)";
@@ -175,7 +175,7 @@ export default function HowItWorks() {
       />
 
       {/* ── Left column ── */}
-      <div className="how-copy" style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 28, marginLeft: "auto", paddingRight: 0, maxWidth: 380, justifySelf: "end", transform: "translateX(350px)" }}>
+      <div className="how-copy" style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 28, marginLeft: "auto", paddingRight: 0, maxWidth: 380, justifySelf: "end", transform: "translateX(280px)" }}>
         {/* Eyebrow */}
         <p className="how-eyebrow" style={{
           margin: 0,
