@@ -16,7 +16,7 @@ const CSS = `
 .os-num{font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.05em;line-height:.8;display:inline-flex;align-items:flex-start}
 .os-u{font-size:.42em;margin:.12em 0 0 .06em;letter-spacing:-.03em}
 .os-marker{font-size:15px;font-weight:500;line-height:1.2;color:var(--ink-soft);margin-bottom:clamp(20px,3vw,40px);text-align:center}
-.os-hero{padding-top:clamp(48px,9vw,120px);padding-bottom:clamp(20px,3vw,40px);text-align:center}
+.os-hero{padding-top:clamp(48px,9vw,120px);padding-bottom:clamp(80px,14vw,200px);text-align:center}
 .os-hero h1{font-size:clamp(46px,8.4vw,148px);max-width:17.5ch;margin:0 auto}
 .os-opp{padding-bottom:clamp(100px,16vw,220px);text-align:center}
 .os-grid{display:grid;grid-template-columns:auto minmax(0,34rem);gap:clamp(32px,6vw,110px);align-items:end;justify-content:center}
@@ -45,11 +45,10 @@ const CSS = `
 `;
 
 const ROWS = [
-  { v: 73, title: 'Need more support.',       text: 'Would benefit from more AI training and implementation resources.' },
-  { v: 48, title: 'Too many choices.',        text: 'Of AI users struggle to choose the right tools.' },
-  { v: 50, title: 'Privacy matters.',         text: 'Of AI users cite data privacy and security challenges.' },
-  { v: 59, title: 'Want to stay in control.', text: 'Feel more comfortable with AI when they can approve every action.' },
-  { v: 43, title: 'Would pay more for less.', text: 'Would pay a premium for a solution that reduces the number of tools they use.' },
+  { v: 36,  display: null,           title: 'Of the workweek spent on administrative tasks.',           text: 'Time etc / Censuswide'          },
+  { v: 47,  display: null,           title: 'Say finding new customers is harder than ever.',            text: 'FreshBooks'                      },
+  { v: 73,  display: null,           title: 'Say easier-to-use AI would help them adopt it.',            text: 'Reimagine Main Street / PayPal'  },
+  { v: 37,  display: '37% vs. <20%', title: 'AI adoption among large businesses versus the smallest firms.', text: 'US Census Bureau'           },
 ];
 
 function Words({ text, masked = false }: { text: string; masked?: boolean }) {
@@ -139,7 +138,7 @@ export default function OloStats() {
         </div>
 
         <div className="os-section os-opp">
-          <p className="os-marker" style={{ textAlign: "center", fontSize: "clamp(18px, 2vw, 28px)", fontWeight: 600, marginBottom: 12, marginTop: "clamp(40px, 6vw, 80px)" }}>01 / The Opportunity</p>
+          <p className="os-marker" style={{ textAlign: "center", fontSize: "clamp(18px, 2vw, 28px)", fontWeight: 600, marginBottom: 12, marginTop: "clamp(40px, 6vw, 80px)" }}></p>
           <div className="os-grid">
             <Num value={15} />
             <div>
@@ -154,10 +153,12 @@ export default function OloStats() {
         </div>
 
         <div className="os-section os-why">
-          <p className="os-marker" style={{ fontSize: "clamp(18px, 2vw, 28px)", fontWeight: 600 }}>02–06 / What&apos;s Holding Businesses Back</p>
+          <p className="os-marker" style={{ fontSize: "clamp(18px, 2vw, 28px)", fontWeight: 600 }}></p>
           {ROWS.map((r) => (
             <article className="os-row" data-v={r.v} key={r.title}>
-              <Num value={r.v} />
+              {r.display
+                ? <div className="os-num" style={{ fontSize: "clamp(60px, 10vw, 140px)" }}><span className="os-n" data-to={r.v}>{r.display}</span></div>
+                : <Num value={r.v} />}
               <div>
                 <h3>{r.title}</h3>
                 <p>{r.text}</p>
@@ -182,11 +183,7 @@ export default function OloStats() {
           </svg>
         </div>
 
-        <div style={{ textAlign: "center", padding: "0 var(--pad) 40px" as string }}>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--ink-soft)" as string, maxWidth: "60rem", margin: "0 auto" }}>
-            Sources: Goldman Sachs 10,000 Small Businesses, March and October 2026; inTandem 2026 SMB Digital Adoption Report.
-          </p>
-        </div>
+
         <p style={{ textAlign: "center", fontSize: 13, fontWeight: 500, color: "var(--ink-soft)", padding: "0 var(--pad) 48px", opacity: 0.6 }}>
           © 2026 olo by SMB Automation Research LLC.
         </p>
