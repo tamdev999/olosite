@@ -61,20 +61,21 @@ export default function Navbar() {
             height: 32,
             paddingInline: 16,
             borderRadius: 9999,
-            background: "#ffffff",
-            color: "#07080a",
+            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
+            color: "#ffffff",
             fontSize: 13,
             fontWeight: 600,
             letterSpacing: "0.01em",
             border: "none",
             cursor: "pointer",
             whiteSpace: "nowrap",
-            transition: "background 0.15s",
+            transition: "opacity 0.15s",
+            boxShadow: "0 0 16px rgba(59,130,246,0.45)",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#e5e5e5"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
         >
-          Get Early Access
+          Get olo
         </button>
       </div>
     </header>

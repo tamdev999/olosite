@@ -314,22 +314,23 @@ export default function EarlyAccessModal() {
                 style={{
                   width: "100%",
                   height: 48,
-                  background: loading ? "rgba(45,212,191,0.5)" : "#2DD4BF",
-                  color: "#07080a",
+                  background: loading ? "rgba(59,130,246,0.5)" : "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
+                  color: "#ffffff",
                   border: "none",
                   borderRadius: 10,
                   fontSize: 15,
                   fontWeight: 700,
                   letterSpacing: "-0.01em",
                   cursor: loading ? "not-allowed" : "pointer",
-                  transition: "background 0.15s, opacity 0.15s",
+                  transition: "opacity 0.15s",
+                  boxShadow: loading ? "none" : "0 0 20px rgba(59,130,246,0.4)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
                 }}
-                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#22bfa8"; }}
-                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#2DD4BF"; }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.opacity = "1"; }}
               >
                 {loading ? (
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
@@ -338,7 +339,7 @@ export default function EarlyAccessModal() {
                     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                   </svg>
                 ) : (
-                  <>Get Early Access →</>
+                  <>Get olo →</>
                 )}
               </button>
             </form>
