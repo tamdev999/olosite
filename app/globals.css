@@ -64,12 +64,7 @@
   mix-blend-mode: overlay;
 }
 
-/* ─── Medium screens: prevent card stack overlapping left column ─── */
-@media (min-width: 761px) and (max-width: 1280px) {
-  .how-stage { justify-items: start; }
-  .how-stack { transform: rotateY(-3.5deg) !important; }
-}
-
+/* ─── ShadePanel mobile ─── */
 @media (max-width: 760px) {
   .shade-panel {
     display: flex !important;
@@ -101,24 +96,4 @@
   }
 }
 
-/* ─── HowItWorks mobile ─── */
-@media (max-width: 760px) {
-  .how-pin {
-    grid-template-columns: 1fr !important;
-    align-content: center !important;
-    justify-items: center !important;
-    text-align: center !important;
-    gap: 0 !important;
-    padding: 24px 20px !important;
-    height: 100svh !important;
-  }
-  .how-copy { display: contents !important; }
-  .how-eyebrow { order: 1; margin: 0 0 12px !important; }
-  .how-headline { order: 2; margin: 0 0 20px !important; }
-  .how-rule { display: none !important; }
-  .how-stage { order: 3; height: auto !important; width: 100% !important; padding: 8px 0 24px !important; perspective-origin: 50% 50% !important; }
-  .how-counter { order: 4; margin-top: 32px; }
-  .how-title { order: 5; margin: 8px 0 14px !important; }
-  .how-bars { order: 6; justify-content: center !important; }
-  .how-stack { transform: translateX(calc(clamp(250px, 62vw, 560px) * -0.27)) rotateY(-3.5deg) !important; }
-}
+/* ─── HowItWorks mobile — now handled inline in HowItWorks.tsx ─── */
