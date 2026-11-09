@@ -64,7 +64,12 @@
   mix-blend-mode: overlay;
 }
 
-/* ─── ShadePanel mobile ─── */
+/* ─── Medium screens: prevent card stack overlapping left column ─── */
+@media (min-width: 761px) and (max-width: 1280px) {
+  .how-stage { justify-items: start; }
+  .how-stack { transform: rotateY(-3.5deg) !important; }
+}
+
 @media (max-width: 760px) {
   .shade-panel {
     display: flex !important;
