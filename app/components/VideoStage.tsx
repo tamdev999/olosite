@@ -45,7 +45,9 @@ export default function VideoStage() {
             display: "block",
           }}
         />
-        <div style={{
+        <div
+          data-theatre
+          style={{
           position: "relative",
           zIndex: 1,
           width: "100%",
@@ -70,7 +72,7 @@ export default function VideoStage() {
           <button
             onClick={toggleSound}
             style={{
-              position: "absolute", bottom: 16, right: 16, zIndex: 3,
+              position: "absolute", bottom: 16, left: 16, zIndex: 3,
               display: "inline-flex", alignItems: "center", gap: 6,
               height: 28, paddingInline: 12, borderRadius: 9999,
               background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)",
