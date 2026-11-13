@@ -53,7 +53,7 @@ export default function Navbar() {
         </a>
 
         {/* CTAs */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
             onClick={() => {
               const calc = document.querySelector('olo-calculator');
@@ -64,24 +64,25 @@ export default function Navbar() {
               display: "inline-flex",
               alignItems: "center",
               height: 32,
-              paddingInline: 16,
-              borderRadius: 9999,
-              background: "linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)",
-              color: "#ffffff",
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: "0.01em",
+              paddingInline: 14,
+              background: "none",
               border: "none",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: 13,
+              fontWeight: 500,
               cursor: "pointer",
               whiteSpace: "nowrap",
-              transition: "opacity 0.15s",
-              boxShadow: "0 0 16px rgba(34,197,94,0.4)",
+              transition: "color 0.15s",
+              borderRadius: 6,
             }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+            onMouseEnter={e => { e.currentTarget.style.color = "rgba(255,255,255,0.95)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
           >
             olo&apos;s Value to You
           </button>
+
+          {/* Separator */}
+          <span style={{ width: 1, height: 16, background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
 
           <button
             onClick={open}
@@ -91,19 +92,24 @@ export default function Navbar() {
               height: 32,
               paddingInline: 16,
               borderRadius: 9999,
-              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
+              background: "none",
               color: "#ffffff",
               fontSize: 13,
               fontWeight: 600,
               letterSpacing: "0.01em",
-              border: "none",
+              border: "1px solid rgba(255,255,255,0.25)",
               cursor: "pointer",
               whiteSpace: "nowrap",
-              transition: "opacity 0.15s",
-              boxShadow: "0 0 16px rgba(59,130,246,0.45)",
+              transition: "border-color 0.15s, background 0.15s",
             }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.55)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+              e.currentTarget.style.background = "none";
+            }}
           >
             Get olo
           </button>
