@@ -97,3 +97,9 @@
 }
 
 /* ─── HowItWorks mobile — now handled inline in HowItWorks.tsx ─── */
+
+/* ─── olo calculator custom properties ─── */
+olo-calculator {
+  --olo-font: var(--font-geist-sans), Inter, sans-serif;
+  --olo-teal: #2DD4BF;
+}

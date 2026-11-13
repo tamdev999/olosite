@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import OloCalculator from "./OloCalculator";
 
 const CSS = `
 .olo-stats{--ink:#04130f;--ink-soft:rgba(4,19,15,.66);--rule:rgba(4,19,15,.2);--pad:clamp(20px,5vw,72px);position:relative;isolation:isolate;overflow:hidden;color:var(--ink);-webkit-font-smoothing:antialiased;background:linear-gradient(172deg,#2fe6d3 0%,#1ccbc6 28%,#1aaec6 58%,#1587cf 100%)}
@@ -134,6 +135,9 @@ export default function OloStats() {
       <style>{CSS}</style>
       <section className="olo-stats" ref={root}>
         <div className="os-section os-hero">
+          <div style={{ marginBottom: "clamp(48px, 6vw, 96px)" }}>
+            <OloCalculator />
+          </div>
           <h1 className="os-display"><Words text="We listened to what business owners really want." masked /></h1>
         </div>
 

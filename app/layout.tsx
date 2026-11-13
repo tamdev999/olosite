@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, IBM_Plex_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import { ModalProvider } from "./components/ModalContext";
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       style={{ backgroundColor: '#09090c' }}
     >
       <body className="min-h-full flex flex-col" style={{ backgroundColor: '#09090c' }}>
+        <Script src="/olo-calculator.js" strategy="afterInteractive" />
         <ModalProvider>
           <Navbar />
           {children}
