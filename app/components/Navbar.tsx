@@ -52,31 +52,62 @@ export default function Navbar() {
           />
         </a>
 
-        {/* CTA */}
-        <button
-          onClick={open}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            height: 32,
-            paddingInline: 16,
-            borderRadius: 9999,
-            background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
-            color: "#ffffff",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: "0.01em",
-            border: "none",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            transition: "opacity 0.15s",
-            boxShadow: "0 0 16px rgba(59,130,246,0.45)",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
-          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
-        >
-          Get olo
-        </button>
+        {/* CTAs */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={() => {
+              const calc = document.querySelector('olo-calculator');
+              const cta = calc?.shadowRoot?.querySelector('.cta') as HTMLElement | null;
+              cta?.click();
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: 32,
+              paddingInline: 16,
+              borderRadius: 9999,
+              background: "linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)",
+              color: "#ffffff",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.01em",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              transition: "opacity 0.15s",
+              boxShadow: "0 0 16px rgba(34,197,94,0.4)",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+          >
+            olo&apos;s Value to You
+          </button>
+
+          <button
+            onClick={open}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: 32,
+              paddingInline: 16,
+              borderRadius: 9999,
+              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)",
+              color: "#ffffff",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.01em",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              transition: "opacity 0.15s",
+              boxShadow: "0 0 16px rgba(59,130,246,0.45)",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+          >
+            Get olo
+          </button>
+        </div>
       </div>
     </header>
   );
