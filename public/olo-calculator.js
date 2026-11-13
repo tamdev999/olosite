@@ -65,9 +65,11 @@
     const cost = num(inputs.monthlyCostPerEmployee);
 
     const adminPayroll = staff * cost;                       // context only — never added to benefit
-    const hourlyCost = cost > 0 ? cost / c.hoursPerMonth : 0;
-    const monthlyTimeValue = hours * c.weeksPerMonth * hourlyCost;
-    const timeValueRecovered = monthlyTimeValue * a.automationRate;
+    const hourlyCost = cost > 0 ? cost / c.hoursPerMonth : 0;   // hourly value of one admin employee's time
+    const hoursRecovered = hours * c.weeksPerMonth * a.automationRate;   // monthly admin capacity returned
+    const capacityValue = hoursRecovered * hourlyCost;              // value of redirected employee capacity
+    const monthlyTimeValue = hours * c.weeksPerMonth * hourlyCost;  // (for the formula note)
+    const timeValueRecovered = capacityValue;                        // alias kept for compatibility
 
     const customersRecovered = missed * a.recoveryRate * a.conversionRate;
     const customerProfit = customersRecovered * profit;
@@ -79,7 +81,7 @@
     const firstMonthNet = netMonthly - c.setupFee;
 
     return {
-      hourlyCost, monthlyTimeValue, timeValueRecovered, customersRecovered, customerProfit,
+      hourlyCost, hoursRecovered, capacityValue, monthlyTimeValue, timeValueRecovered, customersRecovered, customerProfit,
       monthlyBenefit, adminPayroll, plan, subscription, netMonthly, firstMonthNet,
       flags: { noCost: hours > 0 && cost === 0, noProfit: missed > 0 && profit === 0 },
     };
@@ -131,7 +133,7 @@
   :focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 10px; }
 
   /* ---------- Preview panel ---------- */
-  .panel { position: relative; overflow: hidden; border-radius: 32px; background: radial-gradient(120% 90% at 85% 0%, #0d2a28 0%, #090b0c 55%) , var(--bg);
+  .panel { position: relative; overflow: hidden; max-width: 1280px; margin: 0 auto; border-radius: 32px; background: radial-gradient(120% 90% at 85% 0%, #0d2a28 0%, #090b0c 55%) , var(--bg);
     border: 1px solid #1b2226; box-shadow: 0 40px 100px -20px rgba(3,40,38,.55), 0 2px 0 rgba(255,255,255,.03) inset;
     display: grid; grid-template-columns: 1fr 1.08fr; gap: 56px; padding: 64px; align-items: center; }
   .eyebrow { color: var(--teal); font-size: 13px; display: flex; align-items: center; gap: 10px; }
@@ -153,7 +155,13 @@
   .mock-label { margin-top: 22px; font-size: 12px; color: var(--muted); }
   .mock-big { margin-top: 6px; font-size: clamp(44px, 4.6vw, 68px); font-weight: 700; letter-spacing: -.055em; color: var(--teal); line-height: 1; }
   .mock-big small { font-size: .36em; color: var(--muted); letter-spacing: -.01em; font-weight: 500; margin-left: 6px; }
-  .viz { margin-top: 18px; height: 92px; width: 100%; display: block; }
+  .viz { margin-top: 18px; width: 100%; height: auto; aspect-ratio: 300 / 92; display: block; overflow: visible; }
+  .viz rect { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(.08); transition: transform .9s var(--ease); transition-delay: calc(var(--i) * 45ms); }
+  .viz path { stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.4s var(--ease) .35s; }
+  .viz circle { opacity: 0; transition: opacity .4s 1.4s; }
+  .panel.in .viz rect { transform: none; } .panel.in .viz path { stroke-dashoffset: 0; } .panel.in .viz circle { opacity: 1; }
+  .panel::after { content: ""; position: absolute; width: 520px; height: 520px; right: -140px; top: -220px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(47,240,212,.16), transparent 65%); }
   .mgrid { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .m { border-radius: 14px; background: #0f1315; border: 1px solid #20272c; padding: 14px 14px 13px; }
   .m .k { font-size: 10.5px; color: var(--dim); }
@@ -173,8 +181,44 @@
   .x:hover { color: var(--ink); border-color: #3a434a; }
   .prog { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #161b1e; }
   .prog i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--teal), var(--blue)); transition: width .45s var(--ease); }
-  .stage { position: relative; flex: 1; overflow-y: auto; overscroll-behavior: contain; }
-  .step { min-height: 100%; width: 100%; max-width: 980px; margin: 0 auto; padding: clamp(28px, 6vh, 72px) clamp(22px, 5vw, 56px) 40px; display: flex; flex-direction: column; }
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
+  .main.full { grid-template-columns: minmax(0, 1fr); } .main.full .live { display: none; }
+  .stage { position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .live { position: relative; padding: 28px 28px 28px 0; display: flex; }
+  .lv-card { position: relative; overflow: hidden; flex: 1; border-radius: 24px; padding: 28px; display: flex; flex-direction: column;
+    background: linear-gradient(170deg, #0f2a28 0%, #0b1516 55%, #0a0f11 100%); border: 1px solid var(--line2); box-shadow: 0 30px 80px -30px rgba(47,240,212,.25); }
+  .lv-card::before { content: ""; position: absolute; width: 380px; height: 380px; left: -120px; bottom: -160px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(10,168,255,.18), transparent 65%); animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(90px, -60px); } }
+  .lv-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #8fb5b0; }
+  .lv-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 0 rgba(47,240,212,.6); animation: ping 2s infinite; }
+  @keyframes ping { 70% { box-shadow: 0 0 0 10px rgba(47,240,212,0); } 100% { box-shadow: 0 0 0 0 rgba(47,240,212,0); } }
+  .lv-k { margin-top: 34px; font-size: 11px; color: #8fb5b0; }
+  .lv-big { margin-top: 10px; font-size: 64px; font-weight: 700; letter-spacing: -.055em; line-height: 1; color: var(--teal); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lv-big small { font-size: 20px; letter-spacing: 0; color: #8fb5b0; font-weight: 500; margin-left: 6px; }
+  .lv-yr { margin-top: 8px; font-size: 14px; color: #8fb5b0; } .lv-yr b { color: #dff7f3; font-variant-numeric: tabular-nums; }
+  .lv-hrs { margin-top: 26px; padding: 18px 20px; border-radius: 16px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06); display: flex; align-items: center; justify-content: space-between; }
+  .lv-hrs > div { display: flex; align-items: center; gap: 14px; }
+  .lv-hrs b { font-size: 40px; font-weight: 700; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .lv-hrs span { font-size: 13px; color: #8fb5b0; line-height: 1.3; }
+  .lv-ring { width: 48px; height: 48px; } .lv-rc { transition: stroke-dashoffset .8s var(--ease); }
+  .lv-row { margin-top: 26px; }
+  .lv-row + .lv-row { margin-top: 16px; }
+  .lv-l { display: flex; justify-content: space-between; font-size: 14px; color: #b6c9c6; }
+  .lv-l b { color: #fff; font-variant-numeric: tabular-nums; }
+  .lv-bar { margin-top: 8px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.06); overflow: hidden; }
+  .lv-bar i { display: block; height: 100%; width: 0; border-radius: 6px; transition: width .6s var(--ease); }
+  .lv-plan { margin-top: auto; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.07); display: flex; align-items: baseline; gap: 12px; }
+  .lv-plan .mono { font-size: 11px; color: #8fb5b0; }
+  .lv-plan b { font-size: 24px; letter-spacing: -.03em; }
+  .lv-plan .lv-pp { margin-left: auto; font-size: 14px; color: #8fb5b0; }
+  .lv-acts { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; min-height: 34px; }
+  .lv-acts span { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(47,240,212,.12); color: var(--teal); animation: pop .35s var(--ease) both; }
+  .lv-acts .ic { width: 18px; height: 18px; }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+  .lv-need { margin-top: 12px; font-size: 13px; color: #8fb5b0; min-height: 18px; }
+  .minilive { display: none; white-space: nowrap; font-size: 15px; font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .step { min-height: 100%; width: 100%; max-width: 1180px; margin: 0 auto; padding: clamp(28px, 6vh, 72px) clamp(22px, 5vw, 56px) 40px; display: flex; flex-direction: column; }
   .step.enter { animation: stepIn .42s var(--ease) both; }
   .step.enter-back { animation: stepInBack .42s var(--ease) both; }
   @keyframes stepIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
@@ -198,10 +242,11 @@
   .sel-count { margin-top: 18px; font-size: 13px; color: var(--muted); }
   .sel-count b { color: var(--teal); font-weight: 600; }
 
-  .bignum { display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid #22292e; padding-bottom: 10px; max-width: 560px; transition: border-color .2s; }
+  .bignum { display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid #22292e; padding-bottom: 10px; width: fit-content; min-width: min(100%, 360px); max-width: 100%; transition: border-color .2s; }
   .bignum:focus-within { border-color: var(--teal); }
   .bignum .pre, .bignum .suf { font-size: clamp(28px, 4vw, 48px); font-weight: 600; color: var(--dim); letter-spacing: -.03em; }
-  .bignum input { width: 100%; min-width: 0; background: none; border: 0; outline: none; font-size: clamp(56px, 8vw, 104px); font-weight: 700; letter-spacing: -.055em; line-height: 1; color: var(--ink); caret-color: var(--teal); }
+  .bignum .suf { white-space: nowrap; }
+  .bignum input { width: 2ch; min-width: 1.35ch; max-width: 100%; background: none; border: 0; outline: none; font-size: clamp(56px, 8vw, 104px); font-weight: 700; letter-spacing: -.055em; line-height: 1; color: var(--ink); caret-color: var(--teal); }
   .bignum input::placeholder { color: #2b3338; }
   input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number] { -moz-appearance: textfield; }
@@ -221,7 +266,7 @@
   .field { border-radius: 20px; background: var(--card); border: 1px solid var(--line); padding: 22px 24px 24px; }
   .field .fl { font-size: 12px; color: var(--muted); }
   .field .fd { margin-top: 6px; font-size: 14px; color: var(--dim); }
-  .field .bignum { margin-top: 16px; border-bottom-width: 1.5px; }
+  .field .bignum { margin-top: 16px; border-bottom-width: 1.5px; width: 100%; }
   .field .bignum input { font-size: clamp(44px, 5vw, 68px); }
   .field .bignum .pre { font-size: clamp(24px, 3vw, 36px); }
   .stepper { margin-top: 16px; display: flex; align-items: center; gap: 18px; }
@@ -238,37 +283,38 @@
   .kbd { font-size: 12px; color: var(--dim); }
 
   /* ---------- Results ---------- */
-  .res-head { font-size: clamp(30px, 4.2vw, 54px); font-weight: 700; letter-spacing: -.045em; line-height: 1.05; max-width: 22ch; }
+  .res-head { margin-top: 14px; font-size: clamp(30px, 4.2vw, 56px); font-weight: 700; letter-spacing: -.045em; line-height: 1.04; max-width: 20ch; }
   .res-head em { font-style: normal; color: var(--teal); }
-  .hero { margin-top: 30px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
-  .hcard { position: relative; overflow: hidden; border-radius: 24px; padding: 30px 32px; background: linear-gradient(160deg, #0f2e2b 0%, #0b1717 60%, #0a1113 100%); border: 1px solid var(--line2); }
+  .motto { margin-top: 14px; font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; letter-spacing: -.03em; color: #cfd6db; }
+  .motto span { color: var(--teal); }
+  .hero { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; }
+  .hcard { position: relative; overflow: hidden; border-radius: 24px; padding: clamp(24px, 3vw, 36px); background: linear-gradient(160deg, #0f2e2b 0%, #0b1717 60%, #0a1113 100%); border: 1px solid var(--line2); }
+  .hcard::after { content: ""; position: absolute; width: 460px; height: 460px; right: -160px; top: -200px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, rgba(47,240,212,.22), transparent 65%); }
   .hcard .k { font-size: 12px; color: #8fb5b0; }
-  .hcard .big { margin-top: 10px; white-space: nowrap; font-size: clamp(56px, 6.6vw, 100px); font-weight: 700; letter-spacing: -.06em; line-height: .92; color: var(--teal); font-variant-numeric: tabular-nums; }
-  .hcard .big small { font-size: .26em; letter-spacing: -.01em; color: #8fb5b0; font-weight: 500; margin-left: 8px; }
-  .comp { margin-top: 26px; height: 12px; border-radius: 8px; display: flex; overflow: hidden; background: #0b1314; gap: 3px; }
-  .comp i { display: block; height: 100%; transition: flex-grow .8s var(--ease); }
+  .hcard .big { position: relative; margin-top: 12px; white-space: nowrap; font-size: clamp(52px, 7vw, 116px); font-weight: 700; letter-spacing: -.06em; line-height: .92; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .hcard .big small { font-size: .24em; letter-spacing: -.01em; color: #8fb5b0; font-weight: 500; margin-left: 8px; }
+  .yr { margin-top: 12px; font-size: 15px; color: #b6c9c6; }
+  .comp { margin-top: 24px; height: 12px; border-radius: 8px; display: flex; overflow: hidden; background: #0b1314; gap: 3px; }
+  .comp i { display: block; height: 100%; }
   .legend { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: #b6c9c6; }
   .legend span { display: inline-flex; align-items: center; gap: 8px; }
   .legend b { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .plan { border-radius: 24px; padding: 26px 28px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; }
-  .plan .k { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
-  .plan .k i { font-style: normal; color: #c9a45c; letter-spacing: .1em; }
-  .plan .pn { margin-top: 10px; font-size: 40px; font-weight: 700; letter-spacing: -.04em; }
-  .plan .pp { font-size: 18px; color: var(--muted); margin-top: 2px; }
-  .plan .net { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); }
-  .plan .net .k { color: var(--muted); }
-  .plan .net .nv { margin-top: 6px; font-size: 40px; font-weight: 700; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
-  .plan .net .nv.pos { color: var(--ink); } .plan .net .nv.neg { color: #e8a0a0; }
-  .plan .fm { margin-top: 6px; font-size: 13px; color: var(--dim); }
-
-  .rgrid { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .hours { border-radius: 24px; padding: clamp(24px, 3vw, 34px); background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; gap: clamp(18px, 2vw, 28px); }
+  .ring { width: clamp(96px, 9vw, 132px); height: auto; flex: none; }
+  .hn { font-size: clamp(56px, 6vw, 88px); font-weight: 700; letter-spacing: -.055em; line-height: .9; font-variant-numeric: tabular-nums; }
+  .hu { margin-top: 8px; font-size: 18px; font-weight: 600; color: #fff; }
+  .hd { margin-top: 2px; font-size: 15px; color: var(--muted); }
+  .rgrid { margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .rc { border-radius: 20px; padding: 22px 24px; background: var(--card); border: 1px solid var(--line); }
   .rc .k { font-size: 11.5px; color: var(--muted); }
-  .rc .v { margin-top: 8px; font-size: 32px; font-weight: 700; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
-  .rc .d { margin-top: 6px; font-size: 14px; color: var(--dim); line-height: 1.4; }
-  .rc.ctx .v { color: #aeb6bd; }
+  .rc .v { margin-top: 8px; font-size: clamp(30px, 3vw, 40px); font-weight: 700; letter-spacing: -.045em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rc .v span { font-size: .42em; font-weight: 500; letter-spacing: 0; color: var(--muted); margin-left: 4px; }
+  .rc .v.neg { color: #e8a0a0; }
+  .rc .d { margin-top: 6px; font-size: 14px; color: var(--dim); line-height: 1.5; }
+  .rc .d b { color: #cfd6db; }
+  .rc .pre { font-style: normal; font-size: 10px; color: #c9a45c; margin-left: 4px; }
+  .rc.net { border-color: #2a5a55; background: linear-gradient(180deg, #121c1c, #0f1415); }
   .note { margin-top: 10px; font-size: 13px; color: #c9a45c; }
-
   .acts { margin-top: 28px; }
   .acts h3 { font-size: 13px; color: var(--muted); font-weight: 400; }
   .acts ul { list-style: none; margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
@@ -308,7 +354,11 @@
   .disc { margin-top: 18px; font-size: 12px; color: var(--dim); line-height: 1.5; }
   .done { margin-top: 14px; font-size: 15px; color: var(--teal); font-weight: 600; }
 
+  @media (max-width: 1180px) and (min-width: 901px) { .rgrid { grid-template-columns: 1fr 1fr; } .rc.net { grid-column: span 2; } }
+  @media (max-width: 1100px) { .main { grid-template-columns: minmax(0, 1fr) 340px; } .lv-big { font-size: 52px; } }
   @media (max-width: 900px) {
+    .main { grid-template-columns: minmax(0, 1fr); } .live { display: none; } .minilive { display: block; }
+    .back { padding: 0 8px 0 4px; } .next { padding: 0 20px; }
     .panel { grid-template-columns: 1fr; padding: 36px 24px; gap: 34px; border-radius: 26px; }
     .mgrid { grid-template-columns: 1fr 1fr; } .mgrid .m:last-child { grid-column: span 2; }
     .hero, .rgrid, .two, .assm { grid-template-columns: 1fr; }
@@ -363,6 +413,10 @@
         </section>
       </div>`;
       this.panel = this.root.querySelector(".panel");
+      if ("IntersectionObserver" in window && !reduceMotion()) {
+        const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { this.panel.classList.add("in"); io.disconnect(); } }), { threshold: 0.35 });
+        io.observe(this.panel);
+      } else this.panel.classList.add("in");
       this.root.querySelector(".cta").addEventListener("click", () => this.open());
     }
 
@@ -373,17 +427,19 @@
       let b = "", pts = [];
       bars.forEach((v, i) => {
         const x = i * (bw + gap), y = h - v;
-        b += `<rect x="${x.toFixed(1)}" y="${y}" width="${bw}" height="${v}" rx="4" fill="${i > 7 ? "#2ff0d4" : "#1d3533"}"/>`;
+        b += `<rect style="--i:${i}" x="${x.toFixed(1)}" y="${y}" width="${bw}" height="${v}" rx="4" fill="${i > 7 ? "#2ff0d4" : "#1d3533"}"/>`;
         pts.push([x + bw / 2, Math.max(6, h - v - 12 - i * 0.8)]);
       });
       const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-      return `<svg class="viz" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${b}<path d="${d}" fill="none" stroke="#0aa8ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="#0aa8ff"/></svg>`;
+      return `<svg class="viz" viewBox="0 0 ${w} ${h}">${b}<path d="${d}" fill="none" stroke="#0aa8ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="#0aa8ff"/></svg>`;
     }
 
     /* ---------- open / close with spatial transition ---------- */
     targetRect() {
-      const vw = window.innerWidth, vh = window.innerHeight, m = vw < 700 ? 0 : 20;
-      return { top: m, left: m, width: vw - 2 * m, height: vh - 2 * m, radius: vw < 700 ? 0 : 28 };
+      const vw = window.innerWidth, vh = window.innerHeight;
+      if (vw < 700) return { top: 0, left: 0, width: vw, height: vh, radius: 0 };
+      const w = Math.min(vw - 48, 1440), h = Math.min(vh - 48, 940);
+      return { top: Math.round((vh - h) / 2), left: Math.round((vw - w) / 2), width: w, height: h, radius: 28 };
     }
 
     open() {
@@ -399,8 +455,8 @@
           <div class="sheet">
             <div class="sheet-inner">
               <div class="bar">${LOGO}<span class="stepno mono"></span><button class="x" type="button" aria-label="Close calculator">${icon("close")}</button><div class="prog"><i></i></div></div>
-              <div class="stage"></div>
-              <div class="nav"><button class="back" type="button">${icon("back")} Back</button><span class="kbd mono">Press Enter ↵</span><button class="next" type="button">Continue <span>→</span></button></div>
+              <div class="main"><div class="stage"></div><aside class="live" aria-live="polite"></aside></div>
+              <div class="nav"><button class="back" type="button">${icon("back")} Back</button><span class="kbd mono">Press Enter ↵</span><span class="minilive"></span><button class="next" type="button">Continue <span>→</span></button></div>
             </div>
           </div>
         </div>`;
@@ -409,6 +465,11 @@
       this.sheet = sr.querySelector(".sheet");
       this.inner = sr.querySelector(".sheet-inner");
       this.stage = sr.querySelector(".stage");
+      this.live = sr.querySelector(".live");
+      this.mainEl = sr.querySelector(".main");
+      this.miniLive = sr.querySelector(".minilive");
+      const kick = () => requestAnimationFrame(() => this.updateLive());
+      this.stage.addEventListener("input", kick); this.stage.addEventListener("click", kick);
       this.btnNext = sr.querySelector(".next");
       this.btnBack = sr.querySelector(".back");
       sr.querySelector(".x").addEventListener("click", () => this.close());
@@ -495,12 +556,63 @@
       el.className = "step " + (dir < 0 ? "enter-back" : "enter");
       el.innerHTML = isRes ? this.resultsHTML() : this["step" + n]();
       this.stage.replaceChildren(el);
+      this.mainEl.classList.toggle("full", isRes);
+      if (!isRes) this.updateLive();
       this.stage.scrollTop = 0;
       this["bind" + (isRes ? "Results" : n)](el);
       this.updateNext();
       if (!isRes) { const f = el.querySelector("input"); f && setTimeout(() => f.focus({ preventScroll: true }), 60); }
     }
     updateNext() { this.btnNext.disabled = !this.valid(); }
+
+    updateLive() {
+      if (!this.live) return;
+      const st = this.state, r = compute(st, this.assumptions);
+      const max = Math.max(r.timeValueRecovered, r.customerProfit, 1);
+      const acts = CONFIG.activities.filter((a) => st.activities.includes(a.id));
+      const need = [];
+      if (!num(st.monthlyCostPerEmployee)) need.push("admin cost");
+      if (!num(st.profitPerCustomer)) need.push("customer value");
+      if (!this.live.firstChild) {
+        this.live.innerHTML = `
+          <div class="lv-card">
+            <div class="lv-top"><span class="mono">Live estimate</span><span class="lv-dot"></span></div>
+            <div class="lv-k mono">Est. economic benefit</div>
+            <div class="lv-big"><span class="lv-n">$0</span><small>/mo</small></div>
+            <div class="lv-yr">≈ <b class="lv-y">$0</b> a year</div>
+            <div class="lv-row"><div class="lv-l"><span>Employee capacity</span><b class="lv-t">$0</b></div><div class="lv-bar"><i class="lv-tb" style="background:var(--teal)"></i></div></div>
+            <div class="lv-row"><div class="lv-l"><span>Customer profit</span><b class="lv-p">$0</b></div><div class="lv-bar"><i class="lv-pb" style="background:var(--blue)"></i></div></div>
+            <div class="lv-hrs"><div><b class="lv-h">0</b><span>hours / month<br>back to your team</span></div><svg class="lv-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle class="lv-rc" cx="22" cy="22" r="18" fill="none" stroke="#2ff0d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg></div>
+            <div class="lv-plan"><span class="mono">Plan</span><b class="lv-pn">—</b><span class="lv-pp"></span></div>
+            <div class="lv-acts"></div>
+            <div class="lv-need"></div>
+          </div>`;
+      }
+      const q = (c) => this.live.querySelector(c);
+      this.tween(q(".lv-n"), r.monthlyBenefit);
+      this.tween(this.miniLive, r.monthlyBenefit, (v) => "Est. " + money(v) + "/mo");
+      const hrsBack = num(st.weeklyHours) * CONFIG.constants.weeksPerMonth * this.assumptions.automationRate;
+      this.tween(q(".lv-y"), r.monthlyBenefit * 12);
+      this.tween(q(".lv-h"), hrsBack, (v) => String(Math.round(v)));
+      q(".lv-rc").style.strokeDashoffset = 113.1 * (1 - this.assumptions.automationRate * (hrsBack > 0 ? 1 : 0));
+      q(".lv-t").textContent = money(r.capacityValue);
+      q(".lv-p").textContent = money(r.customerProfit);
+      q(".lv-tb").style.width = (r.timeValueRecovered / max) * 100 + "%";
+      q(".lv-pb").style.width = (r.customerProfit / max) * 100 + "%";
+      q(".lv-pn").textContent = r.plan ? r.plan.name : "—";
+      q(".lv-pp").textContent = r.plan ? money(r.plan.price) + "/mo" : "Pick your workload";
+      q(".lv-acts").innerHTML = acts.map((a) => `<span title="${a.label}">${icon(a.icon)}</span>`).join("");
+      q(".lv-need").textContent = need.length && st.step <= STEPS ? "Add your " + need.join(" and ") + " to complete the picture." : "";
+    }
+    tween(node, to, fmt = money) {
+      if (!node) return;
+      const from = node._v || 0; node._v = to;
+      if (reduceMotion() || Math.abs(to - from) < 1) { node.textContent = fmt(to); return; }
+      cancelAnimationFrame(node._raf);
+      const t0 = performance.now(), d = 520;
+      const step = (t) => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); node.textContent = fmt(from + (to - from) * e); if (k < 1) node._raf = requestAnimationFrame(step); };
+      node._raf = requestAnimationFrame(step);
+    }
     header(n, q, hint) { return `<div class="q-num mono">0${n} / 0${STEPS}</div><h2 class="q">${q}</h2>${hint ? `<p class="hint">${hint}</p>` : ""}`; }
 
     /* ---------- steps ---------- */
@@ -522,17 +634,19 @@
     rangeBlock(key, max, step, ticks) {
       return `<div class="range"><input type="range" min="0" max="${max}" step="${step}" aria-label="Adjust" data-k="${key}"><div class="ticks mono">${ticks.map((t) => `<span>${t}</span>`).join("")}</div></div>`;
     }
+    sizeInput(inp) { const fit = () => (inp.style.width = Math.max(1, (inp.value || inp.placeholder || "0").length) + 0.1 + "ch"); inp.addEventListener("input", fit); fit(); }
     bindRange(el, key, max) {
       const inp = el.querySelector(".bignum input"), r = el.querySelector(".range input");
       const sync = (v, from) => {
         this.state[key] = v;
         const n = num(v);
         if (from !== "r") r.value = Math.min(n, max);
-        if (from !== "i") inp.value = v;
+        if (from !== "i") { inp.value = v; inp.dispatchEvent(new Event("input")); }
         r.style.setProperty("--p", (Math.min(n, max) / max) * 100 + "%");
       };
       inp.addEventListener("input", () => sync(inp.value.replace(/[^0-9.]/g, ""), "i"));
       r.addEventListener("input", () => sync(r.value, "r"));
+      this.sizeInput(inp);
       sync(this.state[key], null);
     }
 
@@ -550,9 +664,9 @@
     bind4(el) {
       const inp = el.querySelector("input"), pills = el.querySelectorAll(".pill");
       const mark = () => pills.forEach((p) => p.classList.toggle("on", num(inp.value) === +p.dataset.v));
-      inp.value = this.state.profitPerCustomer;
+      inp.value = this.state.profitPerCustomer; this.sizeInput(inp);
       inp.addEventListener("input", () => { this.state.profitPerCustomer = inp.value; mark(); });
-      pills.forEach((p) => p.addEventListener("click", () => { inp.value = p.dataset.v; this.state.profitPerCustomer = p.dataset.v; mark(); inp.focus(); }));
+      pills.forEach((p) => p.addEventListener("click", () => { inp.value = p.dataset.v; inp.dispatchEvent(new Event("input")); this.state.profitPerCustomer = p.dataset.v; mark(); inp.focus(); }));
       mark();
     }
 
@@ -571,7 +685,7 @@
       el.querySelectorAll(".stepper button").forEach((b) => b.addEventListener("click", () => {
         this.state.adminEmployees = Math.max(0, Math.min(50, num(this.state.adminEmployees) + +b.dataset.d)); show();
       }));
-      inp.value = this.state.monthlyCostPerEmployee;
+      inp.value = this.state.monthlyCostPerEmployee; this.sizeInput(inp);
       inp.addEventListener("input", () => (this.state.monthlyCostPerEmployee = inp.value));
       show();
     }
@@ -580,50 +694,53 @@
     resultsHTML() {
       const r = compute(this.state, this.assumptions);
       const acts = CONFIG.activities.filter((a) => this.state.activities.includes(a.id));
-      const a = this.assumptions;
-      const sl = (k, label, desc, min, max) => `<div class="as"><label for="as-${k}">${label}</label><small>${desc}</small><div class="row"><input id="as-${k}" type="range" min="${min}" max="${max}" step="1" value="${Math.round(a[k] * 100)}" data-a="${k}"><output>${pct(a[k])}</output></div></div>`;
+      const a = this.assumptions, C = CONFIG.constants;
+      const sl = (k, label, desc) => `<div class="as"><label for="as-${k}">${label}</label><small>${desc}</small><div class="row"><input id="as-${k}" type="range" min="0" max="100" step="1" value="${Math.round(a[k] * 100)}" data-a="${k}"><output>${pct(a[k])}</output></div></div>`;
+      const hrs = Math.round(r.hoursRecovered);
+      const ring = 2 * Math.PI * 52, share = Math.min(1, a.automationRate);
       return `
         <div class="q-num mono">Your estimate</div>
-        <h2 class="res-head" style="margin-top:14px">Here's what <em>olo</em> could give back to your business.</h2>
+        <h2 class="res-head">Here's what <em>olo</em> could give back to your business.</h2>
+        <p class="motto">Same team. Less busywork. <span>More business.</span></p>
+
         <div class="hero">
           <div class="hcard">
-            <div class="k mono">Estimated monthly benefit</div>
+            <div class="k mono">Estimated total economic benefit</div>
             <div class="big" data-count="${r.monthlyBenefit}">${money(r.monthlyBenefit)}<small>/mo</small></div>
+            <div class="yr">≈ ${money(r.monthlyBenefit * 12)} a year in capacity and profit</div>
             <div class="comp">${this.compBars(r)}</div>
-            <div class="legend"><span><b style="background:#2ff0d4"></b>Time value recovered</span><span><b style="background:#0aa8ff"></b>Customer profit</span></div>
+            <div class="legend"><span><b style="background:#2ff0d4"></b>Employee capacity</span><span><b style="background:#0aa8ff"></b>Customer profit</span></div>
           </div>
-          <div class="plan">
-            <div class="k mono"><span>Recommended plan</span><i>Preliminary</i></div>
-            <div class="pn">${r.plan ? r.plan.name : "—"}</div>
-            <div class="pp">${r.plan ? money(r.plan.price) + " / month" : ""}</div>
-            <div class="net">
-              <div class="k mono">Estimated net monthly benefit</div>
-              <div class="nv ${r.netMonthly >= 0 ? "pos" : "neg"}">${money(r.netMonthly)}<span style="font-size:.45em;color:var(--muted);font-weight:500"> /mo</span></div>
-              <div class="fm">First month: ${money(r.firstMonthNet)} after the ${money(CONFIG.constants.setupFee)} one-time setup.</div>
-            </div>
+          <div class="hours">
+            <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="#2ff0d4" stroke-width="10" stroke-linecap="round" stroke-dasharray="${ring.toFixed(1)}" stroke-dashoffset="${(ring * (1 - (hrs > 0 ? share : 0))).toFixed(1)}" transform="rotate(-90 60 60)"/></svg>
+            <div><div class="hn" data-count="${hrs}">${hrs}</div><div class="hu">hours / month</div><div class="hd">returned to your team</div></div>
           </div>
         </div>
+
         <div class="rgrid">
-          <div class="rc"><div class="k mono">Admin time value recovered</div><div class="v">${money(r.timeValueRecovered)}</div><div class="d">${pct(a.automationRate)} of ${money(r.monthlyTimeValue)} in monthly admin time.</div>${r.flags.noCost ? '<div class="note">Add a monthly employment cost to value this time.</div>' : ""}</div>
-          <div class="rc"><div class="k mono">Additional customer profit</div><div class="v">${money(r.customerProfit)}</div><div class="d">≈ ${r.customersRecovered.toFixed(1)} recovered customers per month.</div>${r.flags.noProfit ? '<div class="note">Add a profit per customer to value recovered leads.</div>' : ""}</div>
-          <div class="rc ctx"><div class="k mono">Current admin payroll</div><div class="v">${money(r.adminPayroll)}</div><div class="d">For context only. olo doesn't replace your people.</div></div>
+          <div class="rc"><div class="k mono">Employee capacity</div><div class="v">${money(r.capacityValue)}<span>/mo</span></div><div class="d">Available for more valuable work.</div>${r.flags.noCost ? '<div class="note">Add a monthly employment cost to value this time.</div>' : ""}</div>
+          <div class="rc"><div class="k mono">Additional customer profit</div><div class="v">${money(r.customerProfit)}<span>/mo</span></div><div class="d">≈ ${r.customersRecovered.toFixed(1)} recovered customers a month.</div>${r.flags.noProfit ? '<div class="note">Add a profit per customer to value recovered leads.</div>' : ""}</div>
+          <div class="rc net"><div class="k mono">Net benefit after olo</div><div class="v ${r.netMonthly >= 0 ? "" : "neg"}">${money(r.netMonthly)}<span>/mo</span></div>
+            <div class="d">On <b>${r.plan ? r.plan.name : "—"}</b> ${r.plan ? "(" + money(r.plan.price) + "/mo)" : ""} <i class="pre mono">Preliminary</i><br>First month: ${money(r.firstMonthNet)} after ${money(C.setupFee)} setup.</div></div>
         </div>
+
         ${acts.length ? `<div class="acts"><h3 class="mono">What olo could take off your plate</h3><ul>${acts.map((x) => `<li>${icon(x.icon)}${x.label}</li>`).join("")}</ul></div>` : ""}
         <details>
           <summary>How we calculated this</summary>
           <div class="how">
-            <p>Everything here is an estimate, not a guarantee. Recovered time is economic value (hours your team gets back), not necessarily cash saved, and we never assume olo removes staff or salaries. Admin payroll is shown for context and is not added to your benefit. Adjust any assumption to recalculate.</p>
+            <p>Everything here is an estimate, not a guarantee. olo doesn't replace your people: recovered hours stay with your team, and we value them at what that time already costs you so they can go toward more valuable work. Employee capacity is counted once, never on top of payroll. Adjust any assumption to recalculate.</p>
             <div class="assm">
-              ${sl("automationRate", "Admin work olo handles", "Share of weekly admin time automated", 0, 100)}
-              ${sl("recoveryRate", "Opportunities recovered", "Missed opportunities won back by better follow-up", 0, 100)}
-              ${sl("conversionRate", "Recovered → customers", "Recovered opportunities that become paying customers", 0, 100)}
+              ${sl("automationRate", "Admin work olo handles", "Share of weekly admin time automated")}
+              ${sl("recoveryRate", "Leads recovered", "Missed leads won back by better follow-up")}
+              ${sl("conversionRate", "Recovered → customers", "Recovered leads that become paying customers")}
             </div>
             <button type="button" class="reset">Reset to defaults</button>
             <div class="formula">
-              <code>Hourly cost = monthly cost per employee ÷ ${CONFIG.constants.hoursPerMonth}</code><br>
-              <code>Time value recovered = weekly hours × ${CONFIG.constants.weeksPerMonth} × hourly cost × ${pct(a.automationRate)}</code><br>
-              <code>Customer profit = missed opportunities × ${pct(a.recoveryRate)} × ${pct(a.conversionRate)} × profit per customer</code><br>
-              <code>Net monthly benefit = monthly benefit − plan price</code>
+              <code>Hours returned = weekly admin hours × ${C.weeksPerMonth} × ${pct(a.automationRate)}</code><br>
+              <code>Hourly employment cost = monthly cost per employee ÷ ${C.hoursPerMonth}${r.hourlyCost ? " = " + money(r.hourlyCost) + "/hr" : ""}</code><br>
+              <code>Employee capacity = hours returned × hourly employment cost</code><br>
+              <code>Customer profit = missed leads × ${pct(a.recoveryRate)} × ${pct(a.conversionRate)} × profit per customer</code><br>
+              <code>Net benefit = employee capacity + customer profit − olo plan</code>
             </div>
           </div>
         </details>
@@ -637,11 +754,11 @@
           </form>
         </div>
         <div class="done" hidden>Thanks. We'll be in touch soon.</div>
-        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Plan recommendation is preliminary and doesn't account for seat requirements.</p>
+        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Employee capacity is economic value, not a cash saving. Plan recommendation is preliminary and doesn't account for seat requirements.</p>
         <p style="margin-top:22px"><button type="button" class="back restart">${icon("back")} Edit my answers</button></p>`;
     }
     compBars(r) {
-      const t = Math.max(r.timeValueRecovered, 0), p = Math.max(r.customerProfit, 0);
+      const t = Math.max(r.capacityValue, 0), p = Math.max(r.customerProfit, 0);
       if (t + p === 0) return `<i style="flex:1;background:#1a2a29"></i>`;
       return `<i style="flex:${t};background:#2ff0d4"></i><i style="flex:${p};background:#0aa8ff"></i>`;
     }
@@ -654,6 +771,8 @@
         const tick = (t) => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); big.firstChild.nodeValue = money(target * e); if (k < 1) requestAnimationFrame(tick); };
         big.firstChild.nodeValue = "$0"; requestAnimationFrame(tick);
       }
+      const hn = el.querySelector(".hn"), ht = +hn.dataset.count;
+      if (!reduceMotion() && ht > 0) { const t1 = performance.now(); const tk = (t) => { const k = Math.min(1, (t - t1) / 900); hn.textContent = Math.round(ht * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tk); }; hn.textContent = "0"; requestAnimationFrame(tk); }
       el.querySelectorAll("[data-a]").forEach((s) => s.addEventListener("input", () => {
         this.assumptions[s.dataset.a] = +s.value / 100; this.refreshResults(el);
       }));
@@ -670,6 +789,7 @@
       el.querySelector("details").open = true;
       this.bindResults(el);
       const big = el.querySelector(".big"); big.firstChild.nodeValue = money(+big.dataset.count);
+      const hn = el.querySelector(".hn"); hn.textContent = hn.dataset.count;
       this.stage.scrollTop = scroll;
     }
 
@@ -686,7 +806,7 @@
                   profitPerCustomer: num(this.state.profitPerCustomer), adminEmployees: num(this.state.adminEmployees), monthlyCostPerEmployee: num(this.state.monthlyCostPerEmployee) },
         assumptions: { ...this.assumptions },
         results: {
-          monthlyBenefit: Math.round(r.monthlyBenefit), timeValueRecovered: Math.round(r.timeValueRecovered),
+          monthlyBenefit: Math.round(r.monthlyBenefit), hoursReturned: Math.round(r.hoursRecovered), employeeCapacity: Math.round(r.capacityValue),
           customerProfit: Math.round(r.customerProfit), adminPayroll: Math.round(r.adminPayroll),
           recommendedPlan: r.plan && r.plan.name, planPrice: r.subscription,
           netMonthlyBenefit: Math.round(r.netMonthly), firstMonthNet: Math.round(r.firstMonthNet),
@@ -714,8 +834,9 @@
         const body = [
           "I'd like early access to olo.", "", "Email: " + email, "",
           "My calculator estimate:",
-          "- Estimated monthly benefit: " + money(R.monthlyBenefit),
-          "- Admin time value recovered: " + money(R.timeValueRecovered),
+          "- Hours returned to my team: " + R.hoursReturned + "/month",
+          "- Employee capacity: " + money(R.employeeCapacity) + "/month",
+          "- Estimated total economic benefit: " + money(R.monthlyBenefit) + "/month",
           "- Additional customer profit: " + money(R.customerProfit),
           "- Recommended plan: " + (R.recommendedPlan || "-") + " (" + money(R.planPrice) + "/mo)",
           "- Estimated net monthly benefit: " + money(R.netMonthlyBenefit),
