@@ -23,11 +23,21 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "olo",
-  description: "The business AI you've been waiting for. Built for business owners with better things to do.",
+  metadataBase: new URL("https://meetolo.ai"),
+  title: "olo | Autonomous AI for Small Business",
+  description: "No prompts. No babysitting. olo finds the work in your business, gets it done, and waits for your approval.",
   icons: {
     icon: "/logo.svg",
   },
+  openGraph: {
+    title: "olo | Autonomous AI for Small Business",
+    description: "No prompts. No babysitting. olo finds the work in your business, gets it done, and waits for your approval.",
+    url: "https://meetolo.ai",
+    siteName: "olo",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "olo: Autonomous AI for Small Business" }],
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
