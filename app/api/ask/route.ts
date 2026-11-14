@@ -3,8 +3,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT } from "@/lib/olo-knowledge";
 
-export const runtime = "nodejs";
-
 const MODEL = "claude-haiku-5-5";   // fast and inexpensive; fine for FAQ-style answers
 const MAX_TURNS = 12;               // conversation history sent to the model
 const MAX_CHARS = 800;              // longest single visitor message accepted
