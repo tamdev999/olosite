@@ -189,7 +189,10 @@ export default function OloStats() {
 
 
         <p style={{ textAlign: "center", fontSize: 13, fontWeight: 500, color: "var(--ink-soft)", padding: "0 var(--pad) 48px", opacity: 0.6 }}>
-          © 2026 olo by SMB Automation Research LLC.
+          © 2026 olo by SMB Automation Research LLC.{" "}
+          <a href="/privacy" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 3 }}>Privacy</a>
+          {" · "}
+          <a href="/terms" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</a>
         </p>
       </section>
     </>
