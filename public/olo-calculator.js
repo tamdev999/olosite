@@ -23,12 +23,14 @@
       weeksPerMonth: 4.33,
       setupFee: 1000,             // one-time
     },
-    plans: [                      // chosen by number of selected capabilities
-      { name: "Starter", price: 799,  min: 1, max: 3 },
-      { name: "Scale",   price: 999,  min: 4, max: 5 },
-      { name: "Pro",     price: 1500, min: 6, max: 6 },
-      { name: "Max",     price: 2500, min: 7, max: Infinity },
+    // Matches the pricing page. Recommended plan = smallest plan that fits BOTH skills and users.
+    plans: [
+      { name: "Starter", price: 799,  skills: 3,        users: 3 },
+      { name: "Scale",   price: 999,  skills: 5,        users: 5 },
+      { name: "Pro",     price: 1500, skills: 10,       users: 10 },
+      { name: "Max",     price: 2500, skills: Infinity, users: 50 },
     ],
+    hoursPerUser: 40,             // estimated users = owner + 1 per 40 weekly team admin hours
     activities: [
       { id: "calls",      label: "Customer calls & bookings",  icon: "phone" },
       { id: "email",      label: "Emails & follow-ups",        icon: "mail" },
@@ -52,9 +54,13 @@
    * ------------------------------------------------------------------ */
   const num = (v) => { const n = parseFloat(String(v ?? "").replace(/[^0-9.\-]/g, "")); return isFinite(n) && n > 0 ? n : 0; };
 
-  function recommendPlan(capabilityCount, plans = CONFIG.plans) {
-    if (capabilityCount < 1) return null;
-    return plans.find((p) => capabilityCount >= p.min && capabilityCount <= p.max) || plans[plans.length - 1];
+  function estimateUsers(inputs) {
+    const own = num(inputs.ownerHours) > 0 || num(inputs.teamHours) === 0 ? 1 : 0;
+    return Math.max(1, own + Math.ceil(num(inputs.teamHours) / CONFIG.hoursPerUser));
+  }
+  function recommendPlan(skills, users = 1, plans = CONFIG.plans) {
+    if (skills < 1) return null;
+    return plans.find((p) => skills <= p.skills && users <= p.users) || plans[plans.length - 1];
   }
 
   function compute(inputs, a = CONFIG.assumptions, c = CONFIG.constants) {
@@ -73,7 +79,8 @@
     const customerProfit = customersRecovered * profit; // additional customer profit
 
     const monthlyBenefit = ownerValue + capacityValue + customerProfit;
-    const plan = recommendPlan((inputs.activities || []).length);
+    const skills = (inputs.activities || []).length, users = estimateUsers(inputs);
+    const plan = recommendPlan(skills, users);
     const subscription = plan ? plan.price : 0;
     const netMonthly = monthlyBenefit - subscription;
     const firstMonthNet = netMonthly - c.setupFee;
@@ -81,7 +88,7 @@
     return {
       ownerHoursBack, teamHoursBack, hoursRecovered: ownerHoursBack + teamHoursBack,
       ownerValue, capacityValue, customersRecovered, customerProfit,
-      monthlyBenefit, plan, subscription, netMonthly, firstMonthNet,
+      monthlyBenefit, plan, subscription, netMonthly, firstMonthNet, skills, users,
     };
   }
 
@@ -726,7 +733,7 @@
           <div class="rc"><div class="k mono">Employee capital unlocked</div><div class="v">${money(r.capacityValue)}<span>/mo</span></div><div class="d">${Math.round(r.teamHoursBack)} team hours freed for revenue-generating work.</div></div>
           <div class="rc"><div class="k mono">Additional customer profit</div><div class="v">${money(r.customerProfit)}<span>/mo</span></div><div class="d">≈ ${r.customersRecovered.toFixed(1)} recovered customers a month.</div></div>
           <div class="rc net"><div class="k mono">Net benefit after olo</div><div class="v ${r.netMonthly >= 0 ? "" : "neg"}">${money(r.netMonthly)}<span>/mo</span></div>
-            <div class="d">On <b>${r.plan ? r.plan.name : "—"}</b> ${r.plan ? "(" + money(r.plan.price) + "/mo)" : ""} <i class="pre mono">Preliminary</i><br>First month: ${money(r.firstMonthNet)} after ${money(C.setupFee)} setup.</div></div>
+            <div class="d">On <b>${r.plan ? r.plan.name : "—"}</b> ${r.plan ? "(" + money(r.plan.price) + "/mo)" : ""} <i class="pre mono">Preliminary</i><br>Fits ${r.skills} skill${r.skills === 1 ? "" : "s"} and ~${r.users} user${r.users === 1 ? "" : "s"}.<br>First month: ${money(r.firstMonthNet)} after ${money(C.setupFee)} setup.</div></div>
         </div>
 
         ${acts.length ? `<div class="acts"><h3 class="mono">What olo could take off your plate</h3><ul>${acts.map((x) => `<li>${icon(x.icon)}${x.label}</li>`).join("")}</ul></div>` : ""}
@@ -758,7 +765,7 @@
           </form>
         </div>
         <div class="done" hidden>Thanks. We'll be in touch soon.</div>
-        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Recovered time is economic value, not a cash saving. Plan recommendation is preliminary and doesn't account for seat requirements.</p>
+        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Recovered time is economic value, not a cash saving. Plan recommendation is preliminary: users are estimated from your admin hours.</p>
         <p style="margin-top:22px"><button type="button" class="back restart">${icon("back")} Edit my answers</button></p>`;
     }
     compBars(r) {
@@ -859,5 +866,5 @@
   }
 
   if (!customElements.get("olo-calculator")) customElements.define("olo-calculator", OloCalculator);
-  window.OloCalculator = Object.assign(window.OloCalculator || {}, { CONFIG, compute, recommendPlan });
+  window.OloCalculator = Object.assign(window.OloCalculator || {}, { CONFIG, compute, recommendPlan, estimateUsers });
 })();
