@@ -3,11 +3,14 @@
  *   <script src="/olo-assistant.js" defer></script>
  * Adds an "Ask olo" button (bottom-right). Opens a panel on desktop, a full-screen sheet on mobile.
  * Talks to POST /api/ask (streams plain text). Change endpoint via window.OloAssistant = { endpoint: "/api/ask" }.
+ * Voice mode: live two-way conversation through an ElevenLabs agent (loaded only when tapped).
+ *   window.OloAssistant = { voiceAgentId: "agent_...", voiceScript: "/elevenlabs-client.min.js" }
  */
 (function () {
   "use strict";
   if (customElements.get("olo-assistant")) return;
 
+  const CFG = () => Object.assign({ endpoint: "/api/ask", voiceAgentId: "agent_8001m7cgdp6zfhzr829khha190qj", voiceScript: "/elevenlabs-client.min.js" }, window.OloAssistant || {});
   const SUGGESTIONS = ["What does olo do?", "How much does it cost?", "How is this different from ChatGPT?", "What tools does it work with?"];
   const GREETING = "Hi! I can answer questions about olo: what it does, pricing, setup, and how it works. What would you like to know?";
 
@@ -15,6 +18,8 @@
   const I = {
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+    end: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg>',
     spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>',
   };
 
@@ -78,6 +83,23 @@
   textarea::placeholder { color: #56626a; }
   .go { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--teal); color: #031a1c; transition: opacity .2s, transform .15s; }
   .go:disabled { opacity: .3; cursor: default; } .go:not(:disabled):hover { transform: translateY(-1px); } .go svg { width: 18px; height: 18px; }
+  .mic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--teal); background: #10292a; border: 1px solid #1f3a37; transition: border-color .2s, background .2s; }
+  .mic:hover { border-color: var(--teal); background: #12322f; } .mic svg { width: 19px; height: 19px; }
+  .talk { display: flex; align-items: center; gap: 10px; width: 100%; height: 46px; margin-bottom: 10px; padding: 0 14px; border-radius: 14px; background: linear-gradient(100deg, #10302d, #0d1f22); border: 1px solid #1f4a45; color: #dff7f3; font-size: 14.5px; font-weight: 600; text-align: left; transition: border-color .2s; }
+  .talk:hover { border-color: var(--teal); } .talk svg { width: 18px; height: 18px; color: var(--teal); } .talk small { margin-left: auto; font-size: 12px; font-weight: 500; color: #8fb5b0; }
+  .voice { display: none; flex-direction: column; align-items: center; padding: 18px 16px 14px; border-top: 1px solid #141a1d; background: radial-gradient(80% 120% at 50% 100%, rgba(47,240,212,.10), transparent 70%); }
+  .panel.voicing .voice { display: flex; } .panel.voicing .in, .panel.voicing .sug { display: none; }
+  .orb { position: relative; width: 112px; height: 112px; display: grid; place-items: center; }
+  .orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8ff7e8 0%, #2ff0d4 35%, #0aa8ff 75%, #0a5fcf 100%);
+    box-shadow: 0 0 60px rgba(47,240,212,.35); transform: scale(calc(.78 + var(--lvl, 0) * .32)); transition: transform .08s linear; }
+  .orb::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid rgba(47,240,212,.25); transform: scale(calc(.9 + var(--lvl, 0) * .25)); transition: transform .12s linear; }
+  .orb.idle::before { animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { transform: scale(.86); } }
+  .vs { margin-top: 16px; font-size: 14px; font-weight: 600; color: #dff7f3; min-height: 20px; }
+  .vh { margin-top: 4px; font-size: 12px; color: var(--dim); text-align: center; }
+  .vend { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px; background: #2a1416; border: 1px solid #5a2a2e; color: #f3b9bd; font-size: 14px; font-weight: 600; }
+  .vend:hover { border-color: #e88a90; } .vend svg { width: 16px; height: 16px; }
+  .m.sys { align-self: center; font-size: 12px; color: var(--dim); }
   .ft { margin-top: 8px; text-align: center; font-size: 11px; color: var(--dim); }
 
   @media (max-width: 640px) {
@@ -121,7 +143,8 @@
           <div class="hd"><div class="lg">${LOGO}</div><div class="t"><b>Ask olo</b><span>Answers about olo, instantly</span></div><button class="x" type="button" aria-label="Close">${I.close}</button></div>
           <div class="log" aria-live="polite"></div>
           <div class="sug"></div>
-          <form class="in"><div class="box"><textarea rows="1" placeholder="Ask anything about olo…" aria-label="Your question" maxlength="800"></textarea><button class="go" type="submit" aria-label="Send" disabled>${I.send}</button></div>
+          <div class="voice" aria-live="polite"><div class="orb idle"></div><div class="vs">Connecting…</div><div class="vh">Speak naturally. You can interrupt anytime.</div><button class="vend" type="button">${I.end}End voice chat</button></div>
+          <form class="in"><button class="talk" type="button">${I.mic}Talk to olo<small>Voice</small></button><div class="box"><textarea rows="1" placeholder="Ask anything about olo…" aria-label="Your question" maxlength="800"></textarea><button class="go" type="submit" aria-label="Send" disabled>${I.send}</button></div>
             <div class="ft">AI answers can be imperfect. For anything important, email josh@meetolo.ai.</div></form>
         </section></div>`;
       this.$ = (s) => sr.querySelector(s);
@@ -132,6 +155,9 @@
       this.ta.addEventListener("input", () => this.grow());
       this.ta.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.send(this.ta.value); } });
       document.addEventListener("keydown", (e) => { if (e.key === "Escape" && this.panel.classList.contains("on")) this.close(); });
+      this.$(".talk").addEventListener("click", () => this.startVoice());
+      this.$(".vend").addEventListener("click", () => this.endVoice());
+      if (!CFG().voiceAgentId) { this.$(".talk").remove(); }
       this.add("a", GREETING);
       this.renderSug();
     }
@@ -141,6 +167,7 @@
       setTimeout(() => this.ta.focus({ preventScroll: true }), 120);
     }
     close() {
+      this.endVoice();
       this.panel.classList.remove("on"); this.fab.classList.remove("hide"); this.fab.setAttribute("aria-expanded", "false");
       if (this.prevOverflow !== undefined) { document.documentElement.style.overflow = this.prevOverflow; this.prevOverflow = undefined; }
       this.fab.focus({ preventScroll: true });
@@ -153,6 +180,7 @@
     }
     add(who, text) {
       const el = document.createElement("div"); el.className = "m " + who;
+      if (who === "sys") { el.textContent = text; this.log.appendChild(el); this.log.scrollTop = this.log.scrollHeight; return el; }
       el.innerHTML = `<div class="b">${who === "u" ? md(text).replace(/<a [^>]*>|<\/a>/g, "") : text === null ? '<span class="dots"><i></i><i></i><i></i></span>' : md(text)}</div>`;
       this.log.appendChild(el); this.log.scrollTop = this.log.scrollHeight; return el;
     }
@@ -163,7 +191,7 @@
       const bubble = this.add("a", null), body = bubble.querySelector(".b");
       let answer = "";
       try {
-        const res = await fetch((window.OloAssistant && window.OloAssistant.endpoint) || "/api/ask", {
+        const res = await fetch(CFG().endpoint, {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: this.history.slice(-12) }),
         });
         if (!res.ok || !res.body) { answer = (await res.text().catch(() => "")) || "Sorry, something went wrong. You can reach the team at josh@meetolo.ai."; }
@@ -182,6 +210,62 @@
       this.busy = false; this.grow(); this.log.scrollTop = this.log.scrollHeight;
     }
   }
+  OloAssistant.prototype.loadSdk = function () {
+    if (window.ElevenLabsClient) return Promise.resolve(window.ElevenLabsClient);
+    if (this._sdk) return this._sdk;
+    this._sdk = new Promise((ok, fail) => {
+      const sc = document.createElement("script"); sc.src = CFG().voiceScript; sc.async = true;
+      sc.onload = () => (window.ElevenLabsClient ? ok(window.ElevenLabsClient) : fail(new Error("sdk")));
+      sc.onerror = () => { this._sdk = null; fail(new Error("sdk")); };
+      document.head.appendChild(sc);
+    });
+    return this._sdk;
+  };
+  OloAssistant.prototype.vstate = function (txt, idle) { this.$(".vs").textContent = txt; this.$(".orb").classList.toggle("idle", !!idle); };
+  OloAssistant.prototype.startVoice = async function () {
+    if (this.voice || this.voiceStarting) return;
+    this.voiceStarting = true;
+    this.panel.classList.add("voicing"); this.$(".sug").innerHTML = ""; this.vstate("Connecting…", true);
+    const fail = (msg) => { this.voiceStarting = false; this.panel.classList.remove("voicing"); this.add("a", msg); this.renderSug(); };
+    try {
+      const EL = await this.loadSdk();
+      const strip = EL.stripAudioTags || ((t) => t.replace(/\[[^\]]{1,24}\]\s*/g, ""));
+      this.voice = await EL.Conversation.startSession({
+        agentId: CFG().voiceAgentId, connectionType: "webrtc", textOnly: false,
+        onConnect: () => { this.vstate("Listening…", false); this.add("sys", "Voice chat started"); },
+        onDisconnect: () => this.endVoice(true),
+        onError: (m) => { console.warn("[olo voice]", m); },
+        onModeChange: ({ mode }) => this.vstate(mode === "speaking" ? "olo is speaking…" : "Listening…", false),
+        onMessage: (p) => {
+          const t = strip(p.message || "").trim(); if (!t) return;
+          const who = (p.role || (p.source === "ai" ? "agent" : "user")) === "agent" ? "a" : "u";
+          this.add(who, t); this.history.push({ role: who === "a" ? "assistant" : "user", content: t });
+        },
+      });
+      this.voiceStarting = false;
+      const orb = this.$(".orb");
+      const tick = () => {
+        if (!this.voice) { orb.style.setProperty("--lvl", 0); return; }
+        let v = 0; try { v = Math.max(this.voice.getOutputVolume() || 0, (this.voice.getInputVolume() || 0) * 0.8); } catch (e) {}
+        orb.style.setProperty("--lvl", Math.min(1, v * 1.6).toFixed(3)); this._raf = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch (e) {
+      console.warn("[olo voice]", e);
+      const denied = /permission|notallowed|denied/i.test(String(e && (e.name || e.message)));
+      fail(denied ? "I need microphone access for voice. Allow the mic in your browser, or just type your question below." : "Voice isn't available right now. You can keep typing, and I'll answer here.");
+    }
+  };
+  OloAssistant.prototype.endVoice = async function (fromServer) {
+    const v = this.voice; this.voice = null; this.voiceStarting = false;
+    cancelAnimationFrame(this._raf);
+    if (!this.panel || !this.panel.classList.contains("voicing")) return;
+    this.panel.classList.remove("voicing");
+    if (v && !fromServer) { try { await v.endSession(); } catch (e) {} }
+    this.add("sys", "Voice chat ended");
+    this.renderSug();
+    setTimeout(() => this.ta && this.ta.focus({ preventScroll: true }), 50);
+  };
   customElements.define("olo-assistant", OloAssistant);
   const mount = () => { if (!document.querySelector("olo-assistant")) document.body.appendChild(document.createElement("olo-assistant")); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
