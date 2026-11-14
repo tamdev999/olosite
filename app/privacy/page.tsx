@@ -39,7 +39,7 @@ export default function Privacy() {
     <div style={{ background: "#09090c", minHeight: "100vh", paddingTop: 100, paddingBottom: 120 }}>
       <div style={{ maxWidth: 720, marginInline: "auto", paddingInline: 24, ...prose }}>
         <h1 style={h1Style}>Privacy Policy</h1>
-        <p style={dateStyle}>Effective Date: [Date]</p>
+        <p style={dateStyle}>Effective Date: 11/14/2026</p>
 
         <p>SMB Automation Research LLC, a Florida limited liability company, operates olo and meetolo.ai (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;).</p>
         <p style={{ marginTop: "1em" }}>We respect your privacy. Here&rsquo;s what we collect, why we collect it, and what choices you have.</p>
