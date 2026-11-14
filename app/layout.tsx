@@ -50,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col" style={{ backgroundColor: '#09090c' }}>
         <Script src="/olo-calculator.js" strategy="afterInteractive" />
         <Script src="/olo-theatre.js" strategy="afterInteractive" />
+        <Script src="/olo-assistant.js" strategy="afterInteractive" />
         <ModalProvider>
           <Navbar />
           {children}
