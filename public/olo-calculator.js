@@ -58,34 +58,33 @@
   }
 
   function compute(inputs, a = CONFIG.assumptions, c = CONFIG.constants) {
-    const hours = num(inputs.weeklyHours);
+    const ownerHours = num(inputs.ownerHours);          // owner's own weekly admin hours
+    const teamHours = num(inputs.teamHours);            // weekly admin hours across all employees (no overlap with owner)
+    const ownerRate = num(inputs.ownerRate);            // value of one owner hour
+    const teamRate = num(inputs.teamRate);              // employee hourly cost incl. benefits
     const missed = num(inputs.missedOpportunities);
     const profit = num(inputs.profitPerCustomer);
-    const staff = num(inputs.adminEmployees);
-    const cost = num(inputs.monthlyCostPerEmployee);
 
-    const adminPayroll = staff * cost;                       // context only — never added to benefit
-    const hourlyCost = cost > 0 ? cost / c.hoursPerMonth : 0;   // hourly value of one admin employee's time
-    const hoursRecovered = hours * c.weeksPerMonth * a.automationRate;   // monthly admin capacity returned
-    const capacityValue = hoursRecovered * hourlyCost;              // value of redirected employee capacity
-    const monthlyTimeValue = hours * c.weeksPerMonth * hourlyCost;  // (for the formula note)
-    const timeValueRecovered = capacityValue;                        // alias kept for compatibility
-
+    const ownerHoursBack = ownerHours * c.weeksPerMonth * a.automationRate;
+    const teamHoursBack = teamHours * c.weeksPerMonth * a.automationRate;
+    const ownerValue = ownerHoursBack * ownerRate;      // owner time recovered
+    const capacityValue = teamHoursBack * teamRate;     // employee capital unlocked
     const customersRecovered = missed * a.recoveryRate * a.conversionRate;
-    const customerProfit = customersRecovered * profit;
+    const customerProfit = customersRecovered * profit; // additional customer profit
 
-    const monthlyBenefit = timeValueRecovered + customerProfit;
+    const monthlyBenefit = ownerValue + capacityValue + customerProfit;
     const plan = recommendPlan((inputs.activities || []).length);
     const subscription = plan ? plan.price : 0;
     const netMonthly = monthlyBenefit - subscription;
     const firstMonthNet = netMonthly - c.setupFee;
 
     return {
-      hourlyCost, hoursRecovered, capacityValue, monthlyTimeValue, timeValueRecovered, customersRecovered, customerProfit,
-      monthlyBenefit, adminPayroll, plan, subscription, netMonthly, firstMonthNet,
-      flags: { noCost: hours > 0 && cost === 0, noProfit: missed > 0 && profit === 0 },
+      ownerHoursBack, teamHoursBack, hoursRecovered: ownerHoursBack + teamHoursBack,
+      ownerValue, capacityValue, customersRecovered, customerProfit,
+      monthlyBenefit, plan, subscription, netMonthly, firstMonthNet,
     };
   }
+
 
   /* ------------------------------------------------------------------ *
    * 3. FORMATTING + ICONS
@@ -262,6 +261,22 @@
   .pill { height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 15px; font-weight: 600; color: #cfd6db; transition: all .2s; }
   .pill:hover { border-color: #39424a; } .pill.on { border-color: var(--teal); color: var(--teal); background: #0f2422; }
 
+  .two-sl { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .sl { border-radius: 22px; background: var(--card); border: 1px solid var(--line); padding: 24px 26px 22px; }
+  .body > .sl:only-child { max-width: 760px; }
+  .sl-l { font-size: 18px; font-weight: 700; letter-spacing: -.015em; }
+  .sl-s { margin-top: 4px; font-size: 14px; color: var(--dim); line-height: 1.4; }
+  .sl-v { margin-top: 18px; display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+  .sl-n { font-size: clamp(54px, 7vw, 96px); font-weight: 700; letter-spacing: -.055em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .two-sl .sl-n { font-size: clamp(48px, 5vw, 76px); }
+  .sl-u { font-size: clamp(18px, 2vw, 26px); font-weight: 600; color: var(--dim); letter-spacing: -.02em; }
+  .sl input { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; margin-top: 18px; background: transparent; cursor: pointer; }
+  .sl input::-webkit-slider-runnable-track { height: 8px; border-radius: 8px; background: linear-gradient(90deg, var(--teal) var(--p, 0%), #22292e var(--p, 0%)); }
+  .sl input::-moz-range-track { height: 8px; border-radius: 8px; background: #22292e; }
+  .sl input::-moz-range-progress { height: 8px; border-radius: 8px; background: var(--teal); }
+  .sl input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -11px; border-radius: 50%; background: #fff; border: 7px solid var(--teal); box-shadow: 0 4px 16px rgba(0,0,0,.5); }
+  .sl input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 7px solid var(--teal); }
+  .sl .ticks { margin-top: 6px; }
   .two { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
   .field { border-radius: 20px; background: var(--card); border: 1px solid var(--line); padding: 22px 24px 24px; }
   .field .fl { font-size: 12px; color: var(--muted); }
@@ -304,7 +319,7 @@
   .hn { font-size: clamp(56px, 6vw, 88px); font-weight: 700; letter-spacing: -.055em; line-height: .9; font-variant-numeric: tabular-nums; }
   .hu { margin-top: 8px; font-size: 18px; font-weight: 600; color: #fff; }
   .hd { margin-top: 2px; font-size: 15px; color: var(--muted); }
-  .rgrid { margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .rgrid { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .rc { border-radius: 20px; padding: 22px 24px; background: var(--card); border: 1px solid var(--line); }
   .rc .k { font-size: 11.5px; color: var(--muted); }
   .rc .v { margin-top: 8px; font-size: clamp(30px, 3vw, 40px); font-weight: 700; letter-spacing: -.045em; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -354,18 +369,18 @@
   .disc { margin-top: 18px; font-size: 12px; color: var(--dim); line-height: 1.5; }
   .done { margin-top: 14px; font-size: 15px; color: var(--teal); font-weight: 600; }
 
-  @media (max-width: 1180px) and (min-width: 901px) { .rgrid { grid-template-columns: 1fr 1fr; } .rc.net { grid-column: span 2; } }
   @media (max-width: 1100px) { .main { grid-template-columns: minmax(0, 1fr) 340px; } .lv-big { font-size: 52px; } }
   @media (max-width: 900px) {
     .main { grid-template-columns: minmax(0, 1fr); } .live { display: none; } .minilive { display: block; }
-    .back { padding: 0 8px 0 4px; } .next { padding: 0 20px; }
+    .back { padding: 0 8px 0 4px; } .next { padding: 0 18px; white-space: nowrap; font-size: 16px; }
     .panel { grid-template-columns: 1fr; padding: 36px 24px; gap: 34px; border-radius: 26px; }
     .mgrid { grid-template-columns: 1fr 1fr; } .mgrid .m:last-child { grid-column: span 2; }
-    .hero, .rgrid, .two, .assm { grid-template-columns: 1fr; }
+    .hero, .rgrid, .two, .assm, .two-sl { grid-template-columns: 1fr; }
     .bar { padding: 16px 18px; } .nav { padding: 14px 18px 18px; } .kbd { display: none; }
     .cards { grid-template-columns: 1fr; } .opt { min-height: 64px; }
     .crow .cta { width: 100%; justify-content: center; font-size: 17px; white-space: nowrap; padding: 0 18px; } .final { padding: 26px 22px; }
   }
+  @media (max-width: 420px) { .minilive { font-size: 13px; } .back { font-size: 0; gap: 0; padding: 0 6px; } .back .ic { width: 24px; height: 24px; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
   `;
 
@@ -378,7 +393,7 @@
   class OloCalculator extends HTMLElement {
     constructor() {
       super();
-      this.state = { step: 1, activities: [], weeklyHours: 15, missedOpportunities: 10, profitPerCustomer: "", adminEmployees: 1, monthlyCostPerEmployee: "" };
+      this.state = { step: 1, activities: [], ownerHours: 10, teamHours: 20, missedOpportunities: 10, profitPerCustomer: 500, ownerRate: 75, teamRate: 25 };
       this.assumptions = { ...CONFIG.assumptions };
       this.root = this.attachShadow({ mode: "open" });
     }
@@ -568,11 +583,8 @@
     updateLive() {
       if (!this.live) return;
       const st = this.state, r = compute(st, this.assumptions);
-      const max = Math.max(r.timeValueRecovered, r.customerProfit, 1);
+      const max = Math.max(r.ownerValue, r.capacityValue, r.customerProfit, 1);
       const acts = CONFIG.activities.filter((a) => st.activities.includes(a.id));
-      const need = [];
-      if (!num(st.monthlyCostPerEmployee)) need.push("admin cost");
-      if (!num(st.profitPerCustomer)) need.push("customer value");
       if (!this.live.firstChild) {
         this.live.innerHTML = `
           <div class="lv-card">
@@ -580,9 +592,10 @@
             <div class="lv-k mono">Est. economic benefit</div>
             <div class="lv-big"><span class="lv-n">$0</span><small>/mo</small></div>
             <div class="lv-yr">≈ <b class="lv-y">$0</b> a year</div>
-            <div class="lv-row"><div class="lv-l"><span>Employee capacity</span><b class="lv-t">$0</b></div><div class="lv-bar"><i class="lv-tb" style="background:var(--teal)"></i></div></div>
+            <div class="lv-row"><div class="lv-l"><span>Your time</span><b class="lv-o">$0</b></div><div class="lv-bar"><i class="lv-ob" style="background:#8ff7e8"></i></div></div>
+            <div class="lv-row"><div class="lv-l"><span>Team capacity</span><b class="lv-t">$0</b></div><div class="lv-bar"><i class="lv-tb" style="background:var(--teal)"></i></div></div>
             <div class="lv-row"><div class="lv-l"><span>Customer profit</span><b class="lv-p">$0</b></div><div class="lv-bar"><i class="lv-pb" style="background:var(--blue)"></i></div></div>
-            <div class="lv-hrs"><div><b class="lv-h">0</b><span>hours / month<br>back to your team</span></div><svg class="lv-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle class="lv-rc" cx="22" cy="22" r="18" fill="none" stroke="#2ff0d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg></div>
+            <div class="lv-hrs"><div><b class="lv-h">0</b><span>hours / month<br>back to you &amp; your team</span></div><svg class="lv-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle class="lv-rc" cx="22" cy="22" r="18" fill="none" stroke="#2ff0d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg></div>
             <div class="lv-plan"><span class="mono">Plan</span><b class="lv-pn">—</b><span class="lv-pp"></span></div>
             <div class="lv-acts"></div>
             <div class="lv-need"></div>
@@ -591,18 +604,20 @@
       const q = (c) => this.live.querySelector(c);
       this.tween(q(".lv-n"), r.monthlyBenefit);
       this.tween(this.miniLive, r.monthlyBenefit, (v) => "Est. " + money(v) + "/mo");
-      const hrsBack = num(st.weeklyHours) * CONFIG.constants.weeksPerMonth * this.assumptions.automationRate;
+      const hrsBack = r.hoursRecovered;
       this.tween(q(".lv-y"), r.monthlyBenefit * 12);
       this.tween(q(".lv-h"), hrsBack, (v) => String(Math.round(v)));
       q(".lv-rc").style.strokeDashoffset = 113.1 * (1 - this.assumptions.automationRate * (hrsBack > 0 ? 1 : 0));
       q(".lv-t").textContent = money(r.capacityValue);
       q(".lv-p").textContent = money(r.customerProfit);
-      q(".lv-tb").style.width = (r.timeValueRecovered / max) * 100 + "%";
+      q(".lv-o").textContent = money(r.ownerValue);
+      q(".lv-ob").style.width = (r.ownerValue / max) * 100 + "%";
+      q(".lv-tb").style.width = (r.capacityValue / max) * 100 + "%";
       q(".lv-pb").style.width = (r.customerProfit / max) * 100 + "%";
       q(".lv-pn").textContent = r.plan ? r.plan.name : "—";
       q(".lv-pp").textContent = r.plan ? money(r.plan.price) + "/mo" : "Pick your workload";
       q(".lv-acts").innerHTML = acts.map((a) => `<span title="${a.label}">${icon(a.icon)}</span>`).join("");
-      q(".lv-need").textContent = need.length && st.step <= STEPS ? "Add your " + need.join(" and ") + " to complete the picture." : "";
+      q(".lv-need").textContent = "";
     }
     tween(node, to, fmt = money) {
       if (!node) return;
@@ -631,64 +646,53 @@
       upd();
     }
 
-    rangeBlock(key, max, step, ticks) {
-      return `<div class="range"><input type="range" min="0" max="${max}" step="${step}" aria-label="Adjust" data-k="${key}"><div class="ticks mono">${ticks.map((t) => `<span>${t}</span>`).join("")}</div></div>`;
+    /* Slider-only inputs. opts: { key, label, sub, min, max, step, values, fmt, unit, ticks } */
+    slider(o) {
+      return `<div class="sl" data-k="${o.key}">
+        ${o.label ? `<div class="sl-h"><div><div class="sl-l">${o.label}</div>${o.sub ? `<div class="sl-s">${o.sub}</div>` : ""}</div></div>` : ""}
+        <div class="sl-v"><span class="sl-n">0</span><span class="sl-u">${o.unit || ""}</span></div>
+        <input type="range" aria-label="${o.aria || o.label || "Adjust"}" min="0" max="${o.values ? o.values.length - 1 : o.max}" step="${o.values ? 1 : o.step || 1}">
+        <div class="ticks mono">${(o.ticks || []).map((t) => `<span>${t}</span>`).join("")}</div>
+      </div>`;
     }
-    sizeInput(inp) { const fit = () => (inp.style.width = Math.max(1, (inp.value || inp.placeholder || "0").length) + 0.1 + "ch"); inp.addEventListener("input", fit); fit(); }
-    bindRange(el, key, max) {
-      const inp = el.querySelector(".bignum input"), r = el.querySelector(".range input");
-      const sync = (v, from) => {
-        this.state[key] = v;
-        const n = num(v);
-        if (from !== "r") r.value = Math.min(n, max);
-        if (from !== "i") { inp.value = v; inp.dispatchEvent(new Event("input")); }
-        r.style.setProperty("--p", (Math.min(n, max) / max) * 100 + "%");
+    bindSlider(el, o) {
+      const box = el.querySelector(`.sl[data-k="${o.key}"]`), r = box.querySelector("input"), out = box.querySelector(".sl-n");
+      const toVal = (pos) => (o.values ? o.values[+pos] : +pos);
+      const toPos = (v) => {
+        if (!o.values) return Math.min(o.max, Math.max(0, v));
+        let best = 0; o.values.forEach((x, i) => { if (Math.abs(x - v) < Math.abs(o.values[best] - v)) best = i; }); return best;
       };
-      inp.addEventListener("input", () => sync(inp.value.replace(/[^0-9.]/g, ""), "i"));
-      r.addEventListener("input", () => sync(r.value, "r"));
-      this.sizeInput(inp);
-      sync(this.state[key], null);
+      const fmt = o.fmt || ((v) => String(v));
+      const paint = () => {
+        const v = toVal(r.value); this.state[o.key] = v; out.textContent = fmt(v);
+        r.style.setProperty("--p", (r.value / r.max) * 100 + "%");
+      };
+      r.value = toPos(num(this.state[o.key])); paint();
+      r.addEventListener("input", paint);
+    }
+    get SL() {
+      const $ = (v) => money(v);
+      return {
+        ownerHours: { key: "ownerHours", label: "Your hours", sub: "Time you personally spend on admin", min: 0, max: 40, unit: "hrs / week", ticks: ["0", "10", "20", "30", "40"] },
+        teamHours: { key: "teamHours", label: "Your team's hours", sub: "Admin time across all your employees, not counting yours", min: 0, max: 160, step: 2, unit: "hrs / week", ticks: ["0", "40", "80", "120", "160"] },
+        missed: { key: "missedOpportunities", aria: "Missed opportunities per month", min: 0, max: 100, unit: "/ month", ticks: ["0", "25", "50", "75", "100"] },
+        profit: { key: "profitPerCustomer", aria: "Average profit per customer", values: [50, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1200, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000], fmt: $, unit: "profit / customer", ticks: ["$50", "$500", "$2,000", "$10,000"] },
+        ownerRate: { key: "ownerRate", label: "Your time", sub: "What an hour of your time is worth to the business", values: [25, 35, 50, 60, 75, 100, 125, 150, 200, 250, 300], fmt: $, unit: "/ hour", ticks: ["$25", "$75", "$150", "$300"] },
+        teamRate: { key: "teamRate", label: "Your team's time", sub: "Average hourly cost of an employee, wages + benefits", min: 15, max: 80, fmt: $, unit: "/ hour", ticks: ["$15", "$30", "$45", "$60", "$80"] },
+      };
     }
 
-    step2() { return this.header(2, "How much time does all that take each week?", "Total hours across your team for the work you selected.") + `<div class="body"><label class="bignum"><input type="number" inputmode="decimal" min="0" placeholder="0" aria-label="Weekly hours"><span class="suf">hrs / week</span></label>${this.rangeBlock("weeklyHours", 80, 1, ["0", "20", "40", "60", "80+"])}</div>`; }
-    bind2(el) { this.bindRange(el, "weeklyHours", 80); }
+    step2() { const S = this.SL; return this.header(2, "How much time goes to admin each week?", "Your best guess is fine. Count your own hours separately from your team's.") + `<div class="body two-sl">${this.slider(S.ownerHours)}${this.slider(S.teamHours)}</div>`; }
+    bind2(el) { this.bindSlider(el, this.SL.ownerHours); this.bindSlider(el, this.SL.teamHours); }
 
-    step3() { return this.header(3, "How many potential customers slip through the cracks each month?", "Missed calls, neglected leads, unanswered quotes, lost opportunities. Your best guess is fine.") + `<div class="body"><label class="bignum"><input type="number" inputmode="numeric" min="0" placeholder="0" aria-label="Missed opportunities per month"><span class="suf">/ month</span></label>${this.rangeBlock("missedOpportunities", 100, 1, ["0", "25", "50", "75", "100+"])}</div>`; }
-    bind3(el) { this.bindRange(el, "missedOpportunities", 100); }
+    step3() { return this.header(3, "How many potential customers slip through the cracks each month?", "Missed calls, neglected leads, unanswered quotes, lost opportunities.") + `<div class="body">${this.slider(this.SL.missed)}</div>`; }
+    bind3(el) { this.bindSlider(el, this.SL.missed); }
 
-    step4() {
-      const presets = [250, 500, 1000, 2500, 5000];
-      return this.header(4, "What's an average customer worth to your business?", "Average <b style='color:#fff'>profit</b> per customer, not total revenue.") +
-        `<div class="body"><label class="bignum"><span class="pre">$</span><input type="number" inputmode="decimal" min="0" placeholder="0" aria-label="Average profit per customer"></label><div class="pills">${presets.map((p) => `<button type="button" class="pill" data-v="${p}">${money(p)}</button>`).join("")}</div></div>`;
-    }
-    bind4(el) {
-      const inp = el.querySelector("input"), pills = el.querySelectorAll(".pill");
-      const mark = () => pills.forEach((p) => p.classList.toggle("on", num(inp.value) === +p.dataset.v));
-      inp.value = this.state.profitPerCustomer; this.sizeInput(inp);
-      inp.addEventListener("input", () => { this.state.profitPerCustomer = inp.value; mark(); });
-      pills.forEach((p) => p.addEventListener("click", () => { inp.value = p.dataset.v; inp.dispatchEvent(new Event("input")); this.state.profitPerCustomer = p.dataset.v; mark(); inp.focus(); }));
-      mark();
-    }
+    step4() { return this.header(4, "What's an average customer worth to your business?", "Average <b style='color:#fff'>profit</b> per customer, not total revenue.") + `<div class="body">${this.slider(this.SL.profit)}</div>`; }
+    bind4(el) { this.bindSlider(el, this.SL.profit); }
 
-    step5() {
-      return this.header(5, "How much are you spending on administrative staff?", "People mainly doing admin or other non-revenue work, and what each costs you per month including benefits.") +
-        `<div class="body two">
-          <div class="field"><div class="fl mono">Admin employees</div><div class="fd">Full-time equivalents</div>
-            <div class="stepper"><button type="button" data-d="-1" aria-label="Fewer">−</button><output aria-live="polite"></output><button type="button" data-d="1" aria-label="More">+</button></div></div>
-          <div class="field"><div class="fl mono">Monthly cost per employee</div><div class="fd">Wages + benefits</div>
-            <label class="bignum"><span class="pre">$</span><input type="number" inputmode="decimal" min="0" placeholder="0" aria-label="Average monthly cost per employee"></label></div>
-        </div>`;
-    }
-    bind5(el) {
-      const out = el.querySelector("output"), inp = el.querySelector("input");
-      const show = () => (out.textContent = this.state.adminEmployees);
-      el.querySelectorAll(".stepper button").forEach((b) => b.addEventListener("click", () => {
-        this.state.adminEmployees = Math.max(0, Math.min(50, num(this.state.adminEmployees) + +b.dataset.d)); show();
-      }));
-      inp.value = this.state.monthlyCostPerEmployee; this.sizeInput(inp);
-      inp.addEventListener("input", () => (this.state.monthlyCostPerEmployee = inp.value));
-      show();
-    }
+    step5() { const S = this.SL; return this.header(5, "What's an hour worth?", "We use this to value the time olo gives back. Nothing here is a cash saving or a cut.") + `<div class="body two-sl">${this.slider(S.ownerRate)}${this.slider(S.teamRate)}</div>`; }
+    bind5(el) { this.bindSlider(el, this.SL.ownerRate); this.bindSlider(el, this.SL.teamRate); }
 
     /* ---------- results ---------- */
     resultsHTML() {
@@ -709,17 +713,18 @@
             <div class="big" data-count="${r.monthlyBenefit}">${money(r.monthlyBenefit)}<small>/mo</small></div>
             <div class="yr">≈ ${money(r.monthlyBenefit * 12)} a year in capacity and profit</div>
             <div class="comp">${this.compBars(r)}</div>
-            <div class="legend"><span><b style="background:#2ff0d4"></b>Employee capacity</span><span><b style="background:#0aa8ff"></b>Customer profit</span></div>
+            <div class="legend"><span><b style="background:#8ff7e8"></b>Your time</span><span><b style="background:#2ff0d4"></b>Team capacity</span><span><b style="background:#0aa8ff"></b>Customer profit</span></div>
           </div>
           <div class="hours">
             <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="10"/><circle cx="60" cy="60" r="52" fill="none" stroke="#2ff0d4" stroke-width="10" stroke-linecap="round" stroke-dasharray="${ring.toFixed(1)}" stroke-dashoffset="${(ring * (1 - (hrs > 0 ? share : 0))).toFixed(1)}" transform="rotate(-90 60 60)"/></svg>
-            <div><div class="hn" data-count="${hrs}">${hrs}</div><div class="hu">hours / month</div><div class="hd">returned to your team</div></div>
+            <div><div class="hn" data-count="${hrs}">${hrs}</div><div class="hu">hours / month</div><div class="hd">returned to you and your team</div></div>
           </div>
         </div>
 
         <div class="rgrid">
-          <div class="rc"><div class="k mono">Employee capacity</div><div class="v">${money(r.capacityValue)}<span>/mo</span></div><div class="d">Available for more valuable work.</div>${r.flags.noCost ? '<div class="note">Add a monthly employment cost to value this time.</div>' : ""}</div>
-          <div class="rc"><div class="k mono">Additional customer profit</div><div class="v">${money(r.customerProfit)}<span>/mo</span></div><div class="d">≈ ${r.customersRecovered.toFixed(1)} recovered customers a month.</div>${r.flags.noProfit ? '<div class="note">Add a profit per customer to value recovered leads.</div>' : ""}</div>
+          <div class="rc"><div class="k mono">Owner time recovered</div><div class="v">${money(r.ownerValue)}<span>/mo</span></div><div class="d">${Math.round(r.ownerHoursBack)} of your hours back each month.</div></div>
+          <div class="rc"><div class="k mono">Employee capital unlocked</div><div class="v">${money(r.capacityValue)}<span>/mo</span></div><div class="d">${Math.round(r.teamHoursBack)} team hours freed for revenue-generating work.</div></div>
+          <div class="rc"><div class="k mono">Additional customer profit</div><div class="v">${money(r.customerProfit)}<span>/mo</span></div><div class="d">≈ ${r.customersRecovered.toFixed(1)} recovered customers a month.</div></div>
           <div class="rc net"><div class="k mono">Net benefit after olo</div><div class="v ${r.netMonthly >= 0 ? "" : "neg"}">${money(r.netMonthly)}<span>/mo</span></div>
             <div class="d">On <b>${r.plan ? r.plan.name : "—"}</b> ${r.plan ? "(" + money(r.plan.price) + "/mo)" : ""} <i class="pre mono">Preliminary</i><br>First month: ${money(r.firstMonthNet)} after ${money(C.setupFee)} setup.</div></div>
         </div>
@@ -728,7 +733,7 @@
         <details>
           <summary>How we calculated this</summary>
           <div class="how">
-            <p>Everything here is an estimate, not a guarantee. olo doesn't replace your people: recovered hours stay with your team, and we value them at what that time already costs you so they can go toward more valuable work. Employee capacity is counted once, never on top of payroll. Adjust any assumption to recalculate.</p>
+            <p>Everything here is an estimate, not a guarantee. olo doesn't replace your people: recovered hours stay with you and your team, valued at what that time is already worth so it can go toward more valuable work. Your hours and your team's hours are counted separately and never overlap. Adjust any assumption to recalculate.</p>
             <div class="assm">
               ${sl("automationRate", "Admin work olo handles", "Share of weekly admin time automated")}
               ${sl("recoveryRate", "Leads recovered", "Missed leads won back by better follow-up")}
@@ -736,11 +741,10 @@
             </div>
             <button type="button" class="reset">Reset to defaults</button>
             <div class="formula">
-              <code>Hours returned = weekly admin hours × ${C.weeksPerMonth} × ${pct(a.automationRate)}</code><br>
-              <code>Hourly employment cost = monthly cost per employee ÷ ${C.hoursPerMonth}${r.hourlyCost ? " = " + money(r.hourlyCost) + "/hr" : ""}</code><br>
-              <code>Employee capacity = hours returned × hourly employment cost</code><br>
+              <code>Owner time recovered = your weekly admin hours × ${C.weeksPerMonth} × your hourly value × ${pct(a.automationRate)}</code><br>
+              <code>Employee capital unlocked = team weekly admin hours × ${C.weeksPerMonth} × team hourly cost × ${pct(a.automationRate)}</code><br>
               <code>Customer profit = missed leads × ${pct(a.recoveryRate)} × ${pct(a.conversionRate)} × profit per customer</code><br>
-              <code>Net benefit = employee capacity + customer profit − olo plan</code>
+              <code>Net benefit = owner time + employee capital + customer profit − olo plan</code>
             </div>
           </div>
         </details>
@@ -754,13 +758,13 @@
           </form>
         </div>
         <div class="done" hidden>Thanks. We'll be in touch soon.</div>
-        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Employee capacity is economic value, not a cash saving. Plan recommendation is preliminary and doesn't account for seat requirements.</p>
+        <p class="disc">Estimates only, based on your inputs and the assumptions above. Not a guarantee of savings or revenue. Recovered time is economic value, not a cash saving. Plan recommendation is preliminary and doesn't account for seat requirements.</p>
         <p style="margin-top:22px"><button type="button" class="back restart">${icon("back")} Edit my answers</button></p>`;
     }
     compBars(r) {
-      const t = Math.max(r.capacityValue, 0), p = Math.max(r.customerProfit, 0);
-      if (t + p === 0) return `<i style="flex:1;background:#1a2a29"></i>`;
-      return `<i style="flex:${t};background:#2ff0d4"></i><i style="flex:${p};background:#0aa8ff"></i>`;
+      const o = Math.max(r.ownerValue, 0), t = Math.max(r.capacityValue, 0), p = Math.max(r.customerProfit, 0);
+      if (o + t + p === 0) return `<i style="flex:1;background:#1a2a29"></i>`;
+      return `<i style="flex:${o};background:#8ff7e8"></i><i style="flex:${t};background:#2ff0d4"></i><i style="flex:${p};background:#0aa8ff"></i>`;
     }
 
     bindResults(el) {
@@ -802,12 +806,12 @@
       const labels = CONFIG.activities.filter((x) => this.state.activities.includes(x.id)).map((x) => x.label);
       const payload = {
         email, source: "olo-calculator",
-        inputs: { activities: labels, weeklyHours: num(this.state.weeklyHours), missedOpportunities: num(this.state.missedOpportunities),
-                  profitPerCustomer: num(this.state.profitPerCustomer), adminEmployees: num(this.state.adminEmployees), monthlyCostPerEmployee: num(this.state.monthlyCostPerEmployee) },
+        inputs: { activities: labels, ownerHours: num(this.state.ownerHours), teamHours: num(this.state.teamHours), missedOpportunities: num(this.state.missedOpportunities),
+                  profitPerCustomer: num(this.state.profitPerCustomer), ownerRate: num(this.state.ownerRate), teamRate: num(this.state.teamRate) },
         assumptions: { ...this.assumptions },
         results: {
-          monthlyBenefit: Math.round(r.monthlyBenefit), hoursReturned: Math.round(r.hoursRecovered), employeeCapacity: Math.round(r.capacityValue),
-          customerProfit: Math.round(r.customerProfit), adminPayroll: Math.round(r.adminPayroll),
+          monthlyBenefit: Math.round(r.monthlyBenefit), hoursReturned: Math.round(r.hoursRecovered), ownerTimeValue: Math.round(r.ownerValue),
+          employeeCapital: Math.round(r.capacityValue), customerProfit: Math.round(r.customerProfit),
           recommendedPlan: r.plan && r.plan.name, planPrice: r.subscription,
           netMonthlyBenefit: Math.round(r.netMonthly), firstMonthNet: Math.round(r.firstMonthNet),
         },
@@ -834,18 +838,19 @@
         const body = [
           "I'd like early access to olo.", "", "Email: " + email, "",
           "My calculator estimate:",
-          "- Hours returned to my team: " + R.hoursReturned + "/month",
-          "- Employee capacity: " + money(R.employeeCapacity) + "/month",
-          "- Estimated total economic benefit: " + money(R.monthlyBenefit) + "/month",
-          "- Additional customer profit: " + money(R.customerProfit),
+          "- Hours returned: " + R.hoursReturned + "/month",
+          "- Owner time recovered: " + money(R.ownerTimeValue) + "/month",
+          "- Employee capital unlocked: " + money(R.employeeCapital) + "/month",
+          "- Additional customer profit: " + money(R.customerProfit) + "/month",
+          "- Total economic benefit: " + money(R.monthlyBenefit) + "/month",
           "- Recommended plan: " + (R.recommendedPlan || "-") + " (" + money(R.planPrice) + "/mo)",
-          "- Estimated net monthly benefit: " + money(R.netMonthlyBenefit),
+          "- Net benefit after olo: " + money(R.netMonthlyBenefit) + "/month",
           "", "My answers:",
           "- Work to automate: " + (I.activities.join(", ") || "-"),
-          "- Weekly admin hours: " + I.weeklyHours,
+          "- My admin hours / week: " + I.ownerHours + " (worth " + money(I.ownerRate) + "/hr)",
+          "- Team admin hours / week: " + I.teamHours + " (at " + money(I.teamRate) + "/hr)",
           "- Missed opportunities / month: " + I.missedOpportunities,
           "- Profit per customer: " + money(I.profitPerCustomer),
-          "- Admin staff: " + I.adminEmployees + " at " + money(I.monthlyCostPerEmployee) + "/mo",
         ].join("\n");
         location.href = "mailto:" + cfg.contactEmail + "?subject=" + encodeURIComponent("olo early access: " + email) + "&body=" + encodeURIComponent(body);
         finish("Your email app should open with everything filled in. Just hit send.");
